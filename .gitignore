@@ -1,0 +1,6 @@
+.vscode
+vendor
+go.sum
+logs
+tmp
+github.gAudit.code-workspace
