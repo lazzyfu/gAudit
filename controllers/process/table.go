@@ -10,6 +10,7 @@ import (
 	"sqlSyntaxAudit/common/utils"
 	"sqlSyntaxAudit/global"
 	"strings"
+	"unicode/utf8"
 )
 
 type TableOptions struct {
@@ -28,7 +29,7 @@ type TableOptions struct {
 
 // 检查表名长度
 func (t *TableOptions) CheckTableLength() error {
-	if len(t.Table) > global.App.AuditConfig.MAX_TABLE_NAME_LENGTH {
+	if utf8.RuneCountInString(t.Table) > global.App.AuditConfig.MAX_TABLE_NAME_LENGTH {
 		return fmt.Errorf("表名`%s`字符数超出限制,最大字符限制为%d", t.Table, global.App.AuditConfig.MAX_TABLE_NAME_LENGTH)
 	}
 	return nil
@@ -90,7 +91,7 @@ func (t *TableOptions) CheckTableComment() error {
 		if t.HasComment && len(strings.TrimSpace(t.Comment)) == 0 {
 			return fmt.Errorf("表`%s`的注释不能为空或空字符", t.Table)
 		}
-		if t.HasComment && len(strings.TrimSpace(t.Comment)) > global.App.AuditConfig.TABLE_COMMENT_LENGTH {
+		if t.HasComment && utf8.RuneCountInString(strings.TrimSpace(t.Comment)) > global.App.AuditConfig.TABLE_COMMENT_LENGTH {
 			return fmt.Errorf("表`%s`的注释长度超出限制,最大字符限制为%d", t.Table, global.App.AuditConfig.TABLE_COMMENT_LENGTH)
 		}
 	}

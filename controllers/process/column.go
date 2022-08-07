@@ -12,6 +12,7 @@ import (
 	"sqlSyntaxAudit/global"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/pingcap/parser/mysql"
 )
@@ -32,7 +33,7 @@ type ColOptions struct {
 
 // 检查列名长度
 func (c *ColOptions) CheckColumnLength() error {
-	if len(c.Column) > global.App.AuditConfig.MAX_COLUMN_NAME_LENGTH {
+	if utf8.RuneCountInString(c.Column) > global.App.AuditConfig.MAX_COLUMN_NAME_LENGTH {
 		return fmt.Errorf("列`%s`字符数超出限制,最大字符限制为%d[表`%s`]", c.Column, global.App.AuditConfig.MAX_COLUMN_NAME_LENGTH, c.Table)
 	}
 	return nil
