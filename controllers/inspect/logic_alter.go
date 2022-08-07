@@ -35,7 +35,6 @@ func LogicAlterTableDropColsOrIndexes(v *TraverseAlterTableDropColsOrIndexes, r 
 	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
 	if err != nil {
 		r.Summary = append(r.Summary, err.Error())
-		r.IsSkipNextStep = true
 		return
 	}
 	// 解析获取的db表结构
@@ -152,7 +151,6 @@ func LogicAlterTableAddPrimaryKey(v *TraverseAlterTableAddPrimaryKey, r *Rule) {
 	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
 	if err != nil {
 		r.Summary = append(r.Summary, err.Error())
-		r.IsSkipNextStep = true
 		return
 	}
 	// 解析获取的db表结构
@@ -183,7 +181,6 @@ func LogicAlterTableAddColRepeatDefine(v *TraverseAlterTableAddColRepeatDefine, 
 	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
 	if err != nil {
 		r.Summary = append(r.Summary, err.Error())
-		r.IsSkipNextStep = true
 		return
 	}
 	// 解析获取的db表结构
@@ -238,7 +235,6 @@ func LogicAlterTableAddIndexCount(v *TraverseAlterTableAddIndexCount, r *Rule) {
 	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
 	if err != nil {
 		r.Summary = append(r.Summary, err.Error())
-		r.IsSkipNextStep = true
 		return
 	}
 	// 解析获取的db表结构
@@ -269,7 +265,6 @@ func LogicAlterTableAddIndexRepeatDefine(v *TraverseAlterTableAddIndexRepeatDefi
 	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
 	if err != nil {
 		r.Summary = append(r.Summary, err.Error())
-		r.IsSkipNextStep = true
 		return
 	}
 	// 解析获取的db表结构
@@ -297,7 +292,6 @@ func LogicAlterTableRedundantIndexes(v *TraverseAlterTableRedundantIndexes, r *R
 	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
 	if err != nil {
 		r.Summary = append(r.Summary, err.Error())
-		r.IsSkipNextStep = true
 		return
 	}
 	// 解析获取的db表结构
@@ -332,7 +326,6 @@ func LogicAlterTableDisabledIndexes(v *TraverseAlterTableDisabledIndexes, r *Rul
 	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
 	if err != nil {
 		r.Summary = append(r.Summary, err.Error())
-		r.IsSkipNextStep = true
 		return
 	}
 	// 解析获取的db表结构
@@ -362,7 +355,6 @@ func LogicAlterTableModifyColOptions(v *TraverseAlterTableModifyColOptions, r *R
 	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
 	if err != nil {
 		r.Summary = append(r.Summary, err.Error())
-		r.IsSkipNextStep = true
 		return
 	}
 	// 解析获取的db表结构
@@ -427,7 +419,6 @@ func LogicAlterTableChangeColOptions(v *TraverseAlterTableChangeColOptions, r *R
 	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
 	if err != nil {
 		r.Summary = append(r.Summary, err.Error())
-		r.IsSkipNextStep = true
 		return
 	}
 	// 解析获取的db表结构
@@ -508,7 +499,6 @@ func LogicAlterTableRenameIndex(v *TraverseAlterTableRenameIndex, r *Rule) {
 	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
 	if err != nil {
 		r.Summary = append(r.Summary, err.Error())
-		r.IsSkipNextStep = true
 		return
 	}
 	// 解析获取的db表结构
