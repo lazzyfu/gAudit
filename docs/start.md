@@ -11,14 +11,13 @@
 
 
 ### 下载最新发行版
-> 请下载最新版本
-
+> 请移步到Releases下载最新版本
 
 ```bash
-wget https://github.com/lazzyfu/gAudit/releases/download/v1.0.0/gAudit-linux-v1.0.0.tar.gz
+wget https://github.com/lazzyfu/gAudit/releases/download/v1.0.1/gAudit-linux-v1.0.1.tar.gz
 
 mkdir /usr/local/gAudit
-tar -jxf gAudit-linux-v1.0.0.tar.gz -C /usr/local/gAudit
+tar -jxf gAudit-linux-v1.0.1.tar.gz -C /usr/local/gAudit
 ```
 ### 创建配置文件
 > 根据您自己的需求调整审核参数
@@ -40,7 +39,8 @@ tar -jxf gAudit-linux-v1.0.0.tar.gz -C /usr/local/gAudit
 ### 启动服务
 > 您可以使用supervisor进行管理
 ```
-gAudit -config template/config.json &
+chmod +x gAudit
+./gAudit -config template/config.json &
 ```
 
 ### 目标数据库创建审核账号
