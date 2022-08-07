@@ -12,9 +12,9 @@ gAudit是一个纯粹的SQL语法审核工具，支持MySQL/TiDB，通过解析S
 
 #### 使用
 ```
-curl --location --request POST '127.0.0.1:8081/api/v1/audit' \
+curl --request POST '127.0.0.1:8081/api/v1/audit' \
 --header 'Content-Type: application/json' \
---data-raw '{
+--data '{
     "db_user": "gaudit_rw",
     "db_password": "1234.com",
     "db_host": "127.0.0.1",
@@ -24,7 +24,7 @@ curl --location --request POST '127.0.0.1:8081/api/v1/audit' \
     "custom_audit_parameters": {"MAX_VARCHAR_LENGTH": 2000},
     "sqltext": "alter table slamonitor modify `address` varchar(16554) NOT NULL DEFAULT '\'''\'' COMMENT '\''主机'\''"
 }
-'
+' | jq
 ```
 * db_user: 审核数据库用户
 * db_password: 审核数据库密码

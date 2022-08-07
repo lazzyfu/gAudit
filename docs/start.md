@@ -77,9 +77,9 @@ POST请求时自定义传参，优先级最高。支持一次传递多个审核�
 ### 使用
 > 这里通过API的形式提交审核
 ```
-curl --location --request POST '127.0.0.1:8081/api/v1/audit' \
+curl --request POST '127.0.0.1:8081/api/v1/audit' \
 --header 'Content-Type: application/json' \
---data-raw '
+--data '
 {
     "db_user": "gaudit_rw",
     "db_password": "1234.com",
