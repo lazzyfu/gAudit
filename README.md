@@ -6,7 +6,7 @@ gAudit是一个纯粹的SQL语法审核工具，支持MySQL/TiDB，通过解析S
 - [审核参数](docs/parameters.md)
 - [审核规则](docs/rules.md)
 
-### 语法解析器
+#### 语法解析器
 * [tidb parser](https://github.com/pingcap/tidb/tree/master/parser)
 
 
