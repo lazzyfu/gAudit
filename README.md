@@ -2,12 +2,13 @@
 gAudit是一个纯粹的SQL语法审核工具，支持MySQL/TiDB，通过解析SQL语法树实现自定义规则的审核规则。
 
 #### 文档
-- [Quick start](docs/start.md)
+- [快速开始](docs/start.md)
 - [审核参数](docs/parameters.md)
 - [审核规则](docs/rules.md)
 
 ### 语法解析器
 * [tidb parser](https://github.com/pingcap/tidb/tree/master/parser)
+
 
 #### 使用
 ```
@@ -16,8 +17,8 @@ curl --location --request POST '127.0.0.1:8081/api/v1/audit' \
 --data-raw '{
     "db_user": "gaudit_rw",
     "db_password": "1234.com",
-    "db_host": "114.116.140.2",
-    "db_port": 4000,
+    "db_host": "127.0.0.1",
+    "db_port": 3306,
     "db": "dbms_monitor",
     "timeout": 3000,
     "custom_audit_parameters": {"MAX_VARCHAR_LENGTH": 2000},

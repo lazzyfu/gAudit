@@ -1,5 +1,6 @@
 ## Quick start
 - [Quick start](#quick-start)
+  - [下载最新发行版](#下载最新发行版)
   - [创建配置文件](#创建配置文件)
   - [修改系统配置](#修改系统配置)
   - [启动服务](#启动服务)
@@ -7,14 +8,29 @@
   - [自定义审核参数](#自定义审核参数)
   - [使用](#使用)
   - [输出](#输出)
+
+
+### 下载最新发行版
+> 请下载最新版本
+
+
+```bash
+wget https://github.com/lazzyfu/gAudit/releases/download/v1.0.0/gAudit-linux-v1.0.0.tar.gz
+
+mkdir /usr/local/gAudit
+tar -jxf gAudit-linux-v1.0.0.tar.gz -C /usr/local/gAudit
+```
 ### 创建配置文件
 > 根据您自己的需求调整审核参数
 
 模板文件: template/config.json
 格式: json
 审核参数: 请参考[审核参数](parameters.md)进行自定义增加或调整
+文件：`/usr/local/gAudit/config.json`
+
 
 ### 修改系统配置
+`vim /usr/local/gAudit/config.json`
 ```json
 "ListenAddress": "127.0.0.1:80",
 "LogFilePath": "./logs",
