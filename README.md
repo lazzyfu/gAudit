@@ -1,6 +1,12 @@
 # gAduit
 gAudit是一个纯粹的SQL语法审核工具，支持MySQL/TiDB，通过解析SQL语法树实现自定义规则的审核规则。
 
+#### 为什么要造轮子
+业界已经有非常优秀的审核工具，如: goInception，这里为什么要重复造轮子？
+基于以下考虑（不喜勿喷）
+* 轻量化，仅做语法审核，不希望集成大量的功能，如执行、备份等功能
+* 功能简单，便于二次开发和定制
+
 #### 文档
 - [快速开始](docs/start.md)
 - [审核参数](docs/parameters.md)
@@ -56,3 +62,7 @@ curl --request POST '127.0.0.1:8081/api/v1/audit' \
     "message": "success"
 }
 ```
+
+#### 致谢
+- [goInception](https://github.com/hanchuanchuan/goInceptio)
+- [PingCap](https://github.com/pingcap/tidb/tree/master/parser)

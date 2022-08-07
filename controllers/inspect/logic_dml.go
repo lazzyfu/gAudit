@@ -51,8 +51,8 @@ func LogicDMLInsertWithColumns(v *TraverseDMLInsertWithColumns, r *Rule) {
 	// 强制指定列名
 	if v.ColumnsCount == 0 {
 		r.Summary = append(r.Summary, fmt.Sprintf("%s语句必须指定列名", v.DMLType))
-	}
-	if !v.ColsValuesIsMatch {
+	} else if !v.ColsValuesIsMatch {
+		// todo 检查列名是否存在
 		r.Summary = append(r.Summary, fmt.Sprintf("%s语句指定的列数量和值的数量不匹配", v.DMLType))
 	}
 	if v.RowsCount > global.App.AuditConfig.MAX_INSERT_ROWS {
