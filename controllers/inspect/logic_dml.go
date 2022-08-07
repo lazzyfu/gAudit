@@ -8,6 +8,8 @@ package inspect
 
 import (
 	"fmt"
+	"sqlSyntaxAudit/common/utils"
+	"sqlSyntaxAudit/config"
 	"sqlSyntaxAudit/controllers/process"
 	"sqlSyntaxAudit/global"
 )
@@ -48,11 +50,34 @@ func LogicDMLInsertWithColumns(v *TraverseDMLInsertWithColumns, r *Rule) {
 		r.IsSkipNextStep = true
 		return
 	}
+	// 检查表是否存在
+	if err, msg := DescTable(v.Table, r.DB); err != nil {
+		r.Summary = append(r.Summary, msg)
+		r.IsSkipNextStep = true
+		return
+	}
+	// 获取db表结构
+	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
+	if err != nil {
+		r.Summary = append(r.Summary, err.Error())
+		return
+	}
+	// 解析获取的db表结构
+	vAduit := &TraverseAlterTableShowCreateTableGetCols{}
+	switch audit := audit.(type) {
+	case *config.Audit:
+		(audit.TiStmt[0]).Accept(vAduit)
+	}
+	// 判断列是否存在
+	for _, col := range v.Columns {
+		if !utils.IsContain(vAduit.Cols, col) {
+			r.Summary = append(r.Summary, fmt.Sprintf("列`%s`不存在[表`%s`]", col, v.Table))
+		}
+	}
 	// 强制指定列名
 	if v.ColumnsCount == 0 {
 		r.Summary = append(r.Summary, fmt.Sprintf("%s语句必须指定列名", v.DMLType))
 	} else if !v.ColsValuesIsMatch {
-		// todo 检查列名是否存在
 		r.Summary = append(r.Summary, fmt.Sprintf("%s语句指定的列数量和值的数量不匹配", v.DMLType))
 	}
 	if v.RowsCount > global.App.AuditConfig.MAX_INSERT_ROWS {

@@ -55,7 +55,7 @@ type AuditConfiguration struct {
 	CHECK_PRIMARYKEY_USE_BIGINT         bool // 主键是否为bigint
 	CHECK_PRIMARYKEY_USE_UNSIGNED       bool // 主键bigint是否为unsigned
 	CHECK_PRIMARYKEY_USE_AUTO_INCREMENT bool // 主键是否定义为自增
-	ENABLE_COLUMN_NULL                  bool // 是否允许列定义为NULL
+	ENABLE_COLUMN_NOT_NULL              bool // 是否允许列定义为NOT NULL
 	ENABLE_COLUMN_TIME_NULL             bool // 是否允许时间类型设置为NULL
 	CHECK_COLUMN_DEFAULT_VALUE          bool // 列必须要有默认值
 	CHECK_COLUMN_FLOAT_DOUBLE           bool // 将float/double转成int/bigint/decimal等
@@ -129,7 +129,7 @@ func newAuditConfiguration() *AuditConfiguration {
 		CHECK_PRIMARYKEY_USE_BIGINT:          true,
 		CHECK_PRIMARYKEY_USE_UNSIGNED:        true,
 		CHECK_PRIMARYKEY_USE_AUTO_INCREMENT:  true,
-		ENABLE_COLUMN_NULL:                   false,
+		ENABLE_COLUMN_NOT_NULL:               true,
 		ENABLE_COLUMN_TIME_NULL:              true,
 		CHECK_COLUMN_DEFAULT_VALUE:           true,
 		CHECK_COLUMN_FLOAT_DOUBLE:            true,

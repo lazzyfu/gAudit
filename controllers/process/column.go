@@ -109,8 +109,7 @@ func (c *ColOptions) CheckColumnNotAllowedType() error {
 
 // 检查列not null
 func (c *ColOptions) CheckColumnNotNull() error {
-	// 不检查NOT NULL
-	if !global.App.AuditConfig.ENABLE_COLUMN_NULL {
+	if !global.App.AuditConfig.ENABLE_COLUMN_NOT_NULL {
 		return nil
 	}
 	// 允许为NULL的类型

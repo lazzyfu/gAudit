@@ -165,7 +165,6 @@ func (c *Checker) AlterTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId str
 			data.Summary = append(data.Summary, rule.Summary...)
 		}
 		if rule.IsSkipNextStep {
-			fmt.Println("ggggg...........")
 			// 如果IsSkipNextStep为true，跳过接下来的检查步骤
 			break
 		}

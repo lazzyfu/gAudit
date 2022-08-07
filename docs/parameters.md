@@ -33,7 +33,7 @@
     - [CHECK_PRIMARYKEY_USE_BIGINT](#check_primarykey_use_bigint)
     - [CHECK_PRIMARYKEY_USE_UNSIGNED](#check_primarykey_use_unsigned)
     - [CHECK_PRIMARYKEY_USE_AUTO_INCREMENT](#check_primarykey_use_auto_increment)
-    - [ENABLE_COLUMN_NULL](#enable_column_null)
+    - [ENABLE_COLUMN_NOT_NULL](#enable_column_not_null)
     - [ENABLE_COLUMN_TIME_NULL](#enable_column_time_null)
     - [CHECK_COLUMN_DEFAULT_VALUE](#check_column_default_value)
     - [CHECK_COLUMN_FLOAT_DOUBLE](#check_column_float_double)
@@ -245,9 +245,9 @@ UPDATED_AT datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTA
 默认值: true
 可选值: true/false
 
-#### ENABLE_COLUMN_NULL
-描述: 是否允许列定义为NULL
-默认值: false
+#### ENABLE_COLUMN_NOT_NULL
+描述: 列是否定义为NOT NULL
+默认值: true
 可选值: true/false
 
 #### ENABLE_COLUMN_TIME_NULL

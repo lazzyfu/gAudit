@@ -74,22 +74,44 @@ func (c *TraverseDMLNoWhere) Leave(in ast.Node) (ast.Node, bool) {
 
 // TraverseDMLInsertWithColumns
 type TraverseDMLInsertWithColumns struct {
-	IsMatch           int  // 是否匹配当前规则
-	ColumnsCount      int  // 指定的列的数量
-	ColsValuesIsMatch bool // 列的数量是否和值的数量匹配
-	RowsCount         int  // 一次insert行的数量
+	Table             string
+	IsMatch           int      // 是否匹配当前规则
+	Columns           []string // 列名
+	ColumnsCount      int      // 指定的列的数量
+	ColsValuesIsMatch bool     // 列的数量是否和值的数量匹配
+	RowsCount         int      // 一次insert行的数量
 	DMLType           string
+}
+
+func (c *TraverseDMLInsertWithColumns) CheckSelectItem(node ast.ResultSetNode) {
+	// 提取表名
+	if node == nil {
+		return
+	}
+	switch n := node.(type) {
+	case *ast.Join:
+		c.CheckSelectItem(n.Left)
+		c.CheckSelectItem(n.Right)
+	case *ast.TableSource:
+		c.CheckSelectItem(n.Source)
+	case *ast.TableName:
+		c.Table = n.Name.String()
+	}
 }
 
 func (c *TraverseDMLInsertWithColumns) Enter(in ast.Node) (ast.Node, bool) {
 	switch stmt := in.(type) {
 	case *ast.InsertStmt:
+		c.CheckSelectItem(stmt.Table.TableRefs)
 		c.IsMatch++
 		c.DMLType = "INSERT"
 		if stmt.IsReplace {
 			c.DMLType = "REPLACE"
 		}
 		c.ColumnsCount = len(stmt.Columns)
+		for _, item := range stmt.Columns {
+			c.Columns = append(c.Columns, item.Name.O)
+		}
 		c.RowsCount = len(stmt.Lists)
 		c.ColsValuesIsMatch = true
 		for _, row := range stmt.Lists {

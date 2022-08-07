@@ -95,7 +95,7 @@ UPDATED_AT datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTA
 | ENABLE_COLUMN_BLOB_TYPE      | 是否允许列的类型为BLOB/TEXT                                                                                                                     |
 | ENABLE_COLUMN_JSON_TYPE      | 是否允许列的类型为JSON                                                                                                                          |
 | ENABLE_COLUMN_TIMESTAMP_TYPE | 是否允许列的类型为TIMESTAMP                                                                                                                     |
-| ENABLE_COLUMN_NULL           | 是否允许列定义为NULL（not null检查）                                                                                                            |
+| ENABLE_COLUMN_NOT_NULL       | 列是否定义为NOT NULL                                                                                                                            |
 | N/A                          | TEXT/BLOB/JSON类型允许为NULL                                                                                                                    |
 | ENABLE_COLUMN_TIME_NULL      | datetime/timestamp是否允许为NULL                                                                                                                |
 | CHECK_COLUMN_DEFAULT_VALUE   | 列必须要有默认值                                                                                                                                |
