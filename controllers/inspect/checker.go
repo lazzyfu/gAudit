@@ -248,12 +248,6 @@ func (c *Checker) MergeAlter(kv *kv.KVCache, mergeAlters []string) ReturnData {
 func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 	c.InitDB()
 	var mergeAlters []string // 存放alter语句中的表名
-	// 解析SQL
-	err = c.Parse()
-	if err != nil {
-		logger.AppLog.WithFields(logrus.Fields{"request_id": RequestID}).Error(err)
-		return err, returnData
-	}
 
 	// 每次请求基于RequestID初始化kv cache
 	kv := kv.NewKVCache(RequestID)
@@ -264,9 +258,18 @@ func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 		logger.AppLog.WithFields(logrus.Fields{"request_id": RequestID}).Error(errMsg)
 		return fmt.Errorf(errMsg), returnData
 	}
-	kv.Put("dbVersion", dbVars["dbVersion"])
-	kv.Put("dbCharset", dbVars["dbCharset"])
-	kv.Put("largePrefix", dbVars["largePrefix"])
+	for k, v := range dbVars {
+		kv.Put(k, v)
+	}
+	c.Charset = dbVars["dbCharset"]
+
+	// 解析SQL
+	err = c.Parse()
+	if err != nil {
+		logger.AppLog.WithFields(logrus.Fields{"request_id": RequestID}).Error(err)
+		return err, returnData
+	}
+
 	// 迭代stmt
 	for _, stmt := range c.Audit.TiStmt {
 		fingerId := query.Id(query.Fingerprint(stmt.Text()))
@@ -290,6 +293,10 @@ func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 		if len(mergeData.Summary) > 0 {
 			returnData = append(returnData, mergeData)
 		}
+	}
+	// 比如只传递了注释,如:#
+	if len(c.Audit.TiStmt) == 0 {
+		return nil, []ReturnData{}
 	}
 	return nil, returnData
 }

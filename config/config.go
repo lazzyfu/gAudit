@@ -118,7 +118,7 @@ func newAuditConfiguration() *AuditConfiguration {
 		ENABLE_FOREIGN_KEY:                   false,
 		CHECK_TABLE_AUTOINCREMENT_INIT_VALUE: true,
 		ENABLE_CREATE_VIEW:                   true,
-		MAX_COLUMN_NAME_LENGTH:               32,
+		MAX_COLUMN_NAME_LENGTH:               64,
 		CHECK_COLUMN_CHARSET:                 true,
 		CHECK_COLUMN_COMMENT:                 true,
 		COLUMN_MAX_CHAR_LENGTH:               64,

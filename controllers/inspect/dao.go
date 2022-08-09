@@ -61,7 +61,7 @@ func DescTable(table string, db *utils.DB) (error, string) {
 
 // 获取DB变量
 func GetDBVars(db *utils.DB) (map[string]string, error) {
-	result, err := db.FetchRows("show variables where Variable_name in  ('innodb_large_prefix','version', 'character_set_database')")
+	result, err := db.FetchRows("show variables where Variable_name in  ('innodb_large_prefix','version','character_set_database')")
 	if err != nil {
 		return nil, err
 	}

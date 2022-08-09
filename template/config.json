@@ -1,5 +1,5 @@
 {
-    "ListenAddress": "127.0.0.1:8081",
+    "ListenAddress": "127.0.0.1:8082",
     "LogFilePath": "./logs",
     "LogLevel": "info",
     "MAX_TABLE_NAME_LENGTH": 32,
@@ -34,7 +34,7 @@
     "ENABLE_COLUMN_TIME_NULL": true,
     "COLUMN_MAX_CHAR_LENGTH": 64,
     "CHECK_COLUMN_CHARSET": true,
-    "MAX_COLUMN_NAME_LENGTH": 32,
+    "MAX_COLUMN_NAME_LENGTH": 64,
     "ENABLE_DROP_TABLE": true,
     "ENABLE_TRUNCATE_TABLE": false,
     "CHECK_COLUMN_COMMENT": true,
@@ -47,7 +47,7 @@
     "DML_DISABLE_SUBQUERY": true,
     "DML_DISABLE_ORDERBY": true,
     "DML_DISABLE_LIMIT": true,
-    "MAX_AFFECTED_ROWS": 100,
+    "MAX_AFFECTED_ROWS": 15,
     "ENABLE_CREATE_VIEW": true,
     "MAX_VARCHAR_LENGTH": 8096
 }
