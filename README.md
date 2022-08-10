@@ -1,10 +1,10 @@
 
 # gAduit
-gAudit是一个纯粹的SQL语法审核工具，支持MySQL/TiDB，通过解析SQL语法树实现自定义规则的审核规则。
-
 ![GO](https://img.shields.io/badge/go-1.18-brightgreen.svg?style=for-the-badge)
 ![Download](https://img.shields.io/github/downloads/lazzyfu/gAudit/total?style=for-the-badge)
 ![License](https://img.shields.io/github/license/lazzyfu/gAudit?style=for-the-badge)
+
+gAudit是一个纯粹的SQL语法审核工具，支持MySQL/TiDB，通过解析SQL语法树实现自定义规则的审核规则。
 
 #### 文档
 - [快速开始](docs/start.md)
