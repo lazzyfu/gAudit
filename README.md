@@ -1,12 +1,10 @@
+
 # gAduit
 gAudit是一个纯粹的SQL语法审核工具，支持MySQL/TiDB，通过解析SQL语法树实现自定义规则的审核规则。
 
-#### 为什么要造轮子
-业界已经有非常优秀的审核工具，如: goInception，这里为什么要重复造轮子？
-
-基于以下考虑（不喜勿喷）
-* 轻量化，仅做语法审核，不希望集成大量的功能，如执行、备份等功能
-* 便于二次开发和定制
+![GO](https://img.shields.io/badge/go-1.18-brightgreen.svg?style=for-the-badge)
+![Download](https://img.shields.io/github/downloads/lazzyfu/gAudit/total?style=for-the-badge)
+![License](https://img.shields.io/github/license/lazzyfu/gAudit?style=for-the-badge)
 
 #### 文档
 - [快速开始](docs/start.md)
@@ -41,7 +39,7 @@ curl --request POST '127.0.0.1:8081/api/v1/audit' \
 * db: 审核db
 * timeout: 访问审核数据库超时时间，单位ms
 * custom_audit_parameters: 自定义传递的审核参数，优先级: `自定义传递参数` > `template/config.json` > `config/config.go`
-* sqltext: SQL语句，支持多条SQL语句，每条SQL语句以分号`;`分割，传递的语句越多，审核耗时越长，不建议一次超过1千条
+* sqltext: SQL语句，支持多条SQL语句，每条SQL语句以分号`;`分割
 
 
 #### 输出
