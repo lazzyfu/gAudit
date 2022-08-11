@@ -273,7 +273,9 @@ func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 
 	// 迭代stmt
 	for _, stmt := range c.Audit.TiStmt {
-		fingerId := query.Id(query.Fingerprint(stmt.Text()))
+		// 移除SQL尾部的分号
+		sqlTrim := strings.TrimSuffix(stmt.Text(), ";")
+		fingerId := query.Id(query.Fingerprint(sqlTrim))
 		kv.Put(fingerId, true)
 		// 迭代
 		switch stmt.(type) {
