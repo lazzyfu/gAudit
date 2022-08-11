@@ -7,6 +7,7 @@
 package process
 
 import (
+	"errors"
 	"sqlSyntaxAudit/common/kv"
 	"sqlSyntaxAudit/common/utils"
 	"sqlSyntaxAudit/global"
@@ -40,7 +41,11 @@ func (e Explain) ConvertToExplain() string {
 }
 
 func (e *Explain) Get() (int64, error) {
-	rows, err := e.DB.FetchRows(e.ConvertToExplain())
+	explainSQL := e.ConvertToExplain()
+	if !strings.HasPrefix(explainSQL, "EXPLAIN") {
+		return 0, errors.New("Explain语句未检测到以`EXPLAIN`开头,请联系管理员")
+	}
+	rows, err := e.DB.FetchRows(explainSQL)
 	if err != nil {
 		return 0, err
 	}

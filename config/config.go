@@ -51,6 +51,7 @@ type AuditConfiguration struct {
 	MAX_VARCHAR_LENGTH                  int  // 最大允许定义的varchar长度
 	ENABLE_COLUMN_BLOB_TYPE             bool // 是否允许列的类型为BLOB/TEXT
 	ENABLE_COLUMN_JSON_TYPE             bool // 是否允许列的类型为JSON
+	ENABLE_COLUMN_BIT_TYPE              bool // 是否允许列的类型为BIT
 	ENABLE_COLUMN_TIMESTAMP_TYPE        bool // 是否允许列的类型为TIMESTAMP
 	CHECK_PRIMARYKEY_USE_BIGINT         bool // 主键是否为bigint
 	CHECK_PRIMARYKEY_USE_UNSIGNED       bool // 主键bigint是否为unsigned
@@ -125,6 +126,7 @@ func newAuditConfiguration() *AuditConfiguration {
 		MAX_VARCHAR_LENGTH:                   65535,
 		ENABLE_COLUMN_BLOB_TYPE:              true,
 		ENABLE_COLUMN_JSON_TYPE:              true,
+		ENABLE_COLUMN_BIT_TYPE:               true,
 		ENABLE_COLUMN_TIMESTAMP_TYPE:         false,
 		CHECK_PRIMARYKEY_USE_BIGINT:          true,
 		CHECK_PRIMARYKEY_USE_UNSIGNED:        true,

@@ -104,6 +104,9 @@ func (c *ColOptions) CheckColumnNotAllowedType() error {
 	if !global.App.AuditConfig.ENABLE_COLUMN_TIMESTAMP_TYPE && c.Tp == mysql.TypeTimestamp {
 		return fmt.Errorf("列`%s`不允许定义TIMESTAMP类型[表`%s`]", c.Column, c.Table)
 	}
+	if !global.App.AuditConfig.ENABLE_COLUMN_BIT_TYPE && c.Tp == mysql.TypeBit {
+		return fmt.Errorf("列`%s`不允许定义BIT类型[表`%s`]", c.Column, c.Table)
+	}
 	return nil
 }
 

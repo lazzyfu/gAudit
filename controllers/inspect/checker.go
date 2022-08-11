@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/percona/go-mysql/query"
+	perconQuery "github.com/percona/go-mysql/query"
 	"github.com/pingcap/parser/ast"
 	_ "github.com/pingcap/tidb/types/parser_driver"
 	"github.com/sirupsen/logrus"
@@ -272,7 +272,7 @@ func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 
 	// 迭代stmt
 	for _, stmt := range c.Audit.TiStmt {
-		fingerId := query.Id(query.Fingerprint(stmt.Text()))
+		fingerId := perconQuery.Id(perconQuery.Fingerprint(stmt.Text()))
 		kv.Put(fingerId, true)
 		// 迭代
 		switch stmt.(type) {
