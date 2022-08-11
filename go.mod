@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	github.com/gin-gonic/gin v1.8.1
-	github.com/percona/go-mysql v0.0.0-20210427141028-73d29c6da78c
 )
 
 require (
