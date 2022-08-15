@@ -21,7 +21,7 @@ import (
 type ExplainOutput struct {
 	Table string `json:"Column:table"`
 	// MySQL的Explain预估行数
-	Rows int64 `json:"Column:rows"`
+	Rows int `json:"Column:rows"`
 
 	// TiDB (v4.0及之后)的Explain预估行数存储在Count中
 	EstRows interface{} `json:"Column:estRows"`
@@ -40,7 +40,7 @@ func (e Explain) ConvertToExplain() string {
 	return strings.Join(explain, "")
 }
 
-func (e *Explain) Get() (int64, error) {
+func (e *Explain) Get() (int, error) {
 	explainSQL := e.ConvertToExplain()
 	if !strings.HasPrefix(explainSQL, "EXPLAIN") {
 		return 0, errors.New("Explain语句未检测到以`EXPLAIN`开头,请联系管理员")
@@ -58,7 +58,7 @@ func (e *Explain) Get() (int64, error) {
 	// 获取db版本
 	dbVersionIns := DbVersion{e.KV.Get("dbVersion").(string)}
 
-	var AffectedRows []int64
+	var AffectedRows []int
 	for _, item := range data {
 		if dbVersionIns.IsTiDB() {
 			// tidb的执行计划第一行可能是estRows=N/A
@@ -66,9 +66,9 @@ func (e *Explain) Get() (int64, error) {
 			if err != nil {
 				continue
 			}
-			// float64 -> int64
-			int64EstRows := int64(floatEstRows)
-			AffectedRows = append(AffectedRows, int64EstRows)
+			// float64 -> int
+			intEstRows := int(floatEstRows)
+			AffectedRows = append(AffectedRows, intEstRows)
 		} else {
 			AffectedRows = append(AffectedRows, item.Rows)
 		}
@@ -77,7 +77,7 @@ func (e *Explain) Get() (int64, error) {
 		return AffectedRows[0], nil
 	}
 	if global.App.AuditConfig.EXPLAIN_RULE == "max" {
-		return utils.MaxInt64(AffectedRows), nil
+		return utils.MaxInt(AffectedRows), nil
 	}
 	return 0, nil
 }

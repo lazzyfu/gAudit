@@ -1,6 +1,6 @@
 /*
 @Time    :   2022/07/06 10:12:48
-@Author  :   zongfei.fu 
+@Author  :   zongfei.fu
 @Desc    :   None
 */
 
@@ -123,7 +123,7 @@ func IsRepeat(items []string) (bool, []string) {
 }
 
 // 获取最大值
-func MaxInt64(items []int64) int64 {
+func MaxInt(items []int) int {
 	maxVal := items[0]
 	for i := 1; i < len(items); i++ {
 		//从第二个 元素开始循环比较，如果发现有更大的，则交换

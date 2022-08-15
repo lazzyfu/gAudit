@@ -33,8 +33,12 @@ func DMLRules() []Rule {
 			CheckFunc: (*Rule).RuleDMLJoinWithOn,
 		},
 		{
-			Hint:      "DML#影响行数",
+			Hint:      "DML#更新影响行数",
 			CheckFunc: (*Rule).RuleDMLMaxUpdateRows,
+		},
+		{
+			Hint:      "DML#插入影响行数",
+			CheckFunc: (*Rule).RuleDMLMaxInsertRows,
 		},
 	}
 }
@@ -79,4 +83,11 @@ func (r *Rule) RuleDMLMaxUpdateRows(tistmt *ast.StmtNode) {
 	v := &TraverseDMLMaxUpdateRows{}
 	(*tistmt).Accept(v)
 	LogicDMLMaxUpdateRows(v, r)
+}
+
+// RuleDMLMaxInsertRows
+func (r *Rule) RuleDMLMaxInsertRows(tistmt *ast.StmtNode) {
+	v := &TraverseDMLMaxInsertRows{}
+	(*tistmt).Accept(v)
+	LogicDMLMaxInsertRows(v, r)
 }

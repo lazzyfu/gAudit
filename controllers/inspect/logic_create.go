@@ -29,6 +29,7 @@ func LogicCreateTableAs(v *TraverseCreateTableAs, r *Rule) {
 		// 不深入检查AS后面的语法
 		if !global.App.AuditConfig.ENABLE_CREATE_TABLE_AS {
 			r.Summary = append(r.Summary, fmt.Sprintf("不允许使用create table as语法[表`%s`]", v.Table))
+			r.IsSkipNextStep = true
 		}
 	}
 }
@@ -38,6 +39,7 @@ func LogicCreateTableLike(v *TraverseCreateTableLike, r *Rule) {
 	if v.IsCreateLike {
 		if !global.App.AuditConfig.ENABLE_CREATE_TABLE_LIKE {
 			r.Summary = append(r.Summary, fmt.Sprintf("不允许使用create table like语法[表`%s`]", v.Table))
+			r.IsSkipNextStep = true
 		}
 	}
 }
@@ -47,6 +49,7 @@ func LogicCreateTableView(v *TraverseCreateTableView, r *Rule) {
 	if v.IsCreateView {
 		if !global.App.AuditConfig.ENABLE_CREATE_VIEW {
 			r.Summary = append(r.Summary, fmt.Sprintf("不允许创建视图[视图名`%s`]", v.Table))
+			r.IsSkipNextStep = true
 		}
 	}
 }

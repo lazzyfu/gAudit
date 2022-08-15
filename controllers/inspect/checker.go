@@ -39,7 +39,7 @@ type Checker struct {
 type ReturnData struct {
 	Summary      []string `json:"summary"` // 规则摘要
 	Level        string   `json:"level"`   // 提醒级别,INFO/WARN/ERROR
-	AffectedRows int64    `json:"affected_rows"`
+	AffectedRows int      `json:"affected_rows"`
 	Type         string   `json:"type"`
 	FingerId     string   `json:"finger_id"`
 	Query        string   `json:"query"` // 原始SQL
@@ -231,13 +231,17 @@ func (c *Checker) MergeAlter(kv *kv.KVCache, mergeAlters []string) ReturnData {
 	var data ReturnData = ReturnData{Level: "INFO"}
 	dbVersionIns := process.DbVersion{Version: kv.Get("dbVersion").(string)}
 	if global.App.AuditConfig.ENABLE_MYSQL_MERGE_ALTER_TABLE && !dbVersionIns.IsTiDB() {
-		if ok, _ := utils.IsRepeat(mergeAlters); ok {
-			data.Summary = append(data.Summary, "MySQL同一张表的多个ALTER操作请合并为一条ALTER语句")
+		if ok, val := utils.IsRepeat(mergeAlters); ok {
+			for _, v := range val {
+				data.Summary = append(data.Summary, fmt.Sprintf("[MySQL数据库]表`%s`的多条ALTER操作,请合并为一条ALTER语句", v))
+			}
 		}
 	}
 	if !global.App.AuditConfig.ENABLE_TIDB_MERGE_ALTER_TABLE && dbVersionIns.IsTiDB() {
-		if ok, _ := utils.IsRepeat(mergeAlters); ok {
-			data.Summary = append(data.Summary, "TiDB同一张表的多次ALTER操作请拆分为多条ALTER语句")
+		if ok, val := utils.IsRepeat(mergeAlters); ok {
+			for _, v := range val {
+				data.Summary = append(data.Summary, fmt.Sprintf("[TiDB数据库]表`%s`的多条ALTER操作,请拆分为多条ALTER语句", v))
+			}
 		}
 	}
 	if len(data.Summary) > 0 {

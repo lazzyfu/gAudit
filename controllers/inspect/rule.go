@@ -15,7 +15,7 @@ import (
 type Rule struct {
 	Hint           string   `json:"hint"`    // 规则说明
 	Summary        []string `json:"summary"` // 规则摘要
-	AffectedRows   int64    `json:"affected_rows"`
+	AffectedRows   int      `json:"affected_rows"`
 	IsSkipNextStep bool     // 是否跳过接下来的检查步骤
 	DB             *utils.DB
 	KV             *kv.KVCache

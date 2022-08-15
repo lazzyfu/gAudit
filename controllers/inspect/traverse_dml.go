@@ -251,3 +251,24 @@ func (c *TraverseDMLMaxUpdateRows) Enter(in ast.Node) (ast.Node, bool) {
 func (c *TraverseDMLMaxUpdateRows) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
+
+// TraverseDMLMaxInsertRows
+type TraverseDMLMaxInsertRows struct {
+	IsMatch   int // 是否匹配当前规则
+	DMLType   string
+	RowsCount int // 一次insert行的数量
+}
+
+func (c *TraverseDMLMaxInsertRows) Enter(in ast.Node) (ast.Node, bool) {
+	switch stmt := in.(type) {
+	case *ast.InsertStmt:
+		c.IsMatch++
+		c.DMLType = "INSERT"
+		c.RowsCount = len(stmt.Lists)
+	}
+	return in, false
+}
+
+func (c *TraverseDMLMaxInsertRows) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}

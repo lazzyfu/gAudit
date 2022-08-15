@@ -53,7 +53,6 @@ func LogicDMLInsertWithColumns(v *TraverseDMLInsertWithColumns, r *Rule) {
 	// 检查表是否存在
 	if err, msg := DescTable(v.Table, r.DB); err != nil {
 		r.Summary = append(r.Summary, msg)
-		r.IsSkipNextStep = true
 		return
 	}
 	// 获取db表结构
@@ -125,12 +124,24 @@ func LogicDMLMaxUpdateRows(v *TraverseDMLMaxUpdateRows, r *Rule) {
 	if err != nil {
 		r.AffectedRows = 0
 		r.Summary = append(r.Summary, err.Error())
+		r.IsSkipNextStep = true
 		return
 	}
 	if affectedRows > global.App.AuditConfig.MAX_AFFECTED_ROWS {
 		r.AffectedRows = affectedRows
 		r.Summary = append(r.Summary, fmt.Sprintf("当前%s语句最大影响行数超过了最大允许值%d", v.DMLType, global.App.AuditConfig.MAX_AFFECTED_ROWS))
+		r.IsSkipNextStep = true
 		return
 	}
+	r.IsSkipNextStep = true
 	r.AffectedRows = affectedRows
+}
+
+// LogicDMLMaxInsertRows
+func LogicDMLMaxInsertRows(v *TraverseDMLMaxInsertRows, r *Rule) {
+	if v.IsMatch == 0 {
+		return
+	}
+	r.AffectedRows = v.RowsCount
+	r.IsSkipNextStep = true
 }
