@@ -267,7 +267,7 @@ func (l *LargePrefix) Check(kv *kv.KVCache) error {
 		}
 		logger.AppLog.Debug(fmt.Sprintf("maxSumLength:%d, indexMaxLength:%d", maxSumLength, indexMaxLength))
 		if maxSumLength > indexMaxLength {
-			return fmt.Errorf("表`%s`的索引`%s`超出了innodb-large-prefix限制,当前索引长度为%d字节,最大限制为%d字节,当前字符集为%s「可使用前缀索引,如:Field(length)」", l.Table, i.Name, maxSumLength, indexMaxLength, l.Charset)
+			return fmt.Errorf("表`%s`的索引`%s`超出了innodb-large-prefix限制,当前索引长度为%d字节,最大限制为%d字节【例如:可使用前缀索引,如:Field(length)】", l.Table, i.Name, maxSumLength, indexMaxLength)
 		}
 	}
 	return nil

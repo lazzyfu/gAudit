@@ -25,10 +25,6 @@ func CreateTableRules() []Rule {
 			CheckFunc: (*Rule).RuleCreateTableLike,
 		},
 		{
-			Hint:      "CreateTable#检查CreateView",
-			CheckFunc: (*Rule).RuleCreateTableView,
-		},
-		{
 			Hint:      "CreateTable#表Options检查",
 			CheckFunc: (*Rule).RuleCreateTableOptions,
 		},
@@ -104,13 +100,6 @@ func (r *Rule) RuleCreateTableLike(tistmt *ast.StmtNode) {
 	v := &TraverseCreateTableLike{}
 	(*tistmt).Accept(v)
 	LogicCreateTableLike(v, r)
-}
-
-// RuleCreateTableView
-func (r *Rule) RuleCreateTableView(tistmt *ast.StmtNode) {
-	v := &TraverseCreateTableView{}
-	(*tistmt).Accept(v)
-	LogicCreateTableView(v, r)
 }
 
 // RuleCreateTableOptions

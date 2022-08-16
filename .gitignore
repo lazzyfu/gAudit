@@ -3,5 +3,5 @@ vendor
 go.sum
 logs
 tmp
-tests
+tests/logs
 github.gAudit.code-workspace

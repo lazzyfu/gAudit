@@ -7,14 +7,15 @@
 package routers
 
 import (
-	views "sqlSyntaxAudit/views"
+	"sqlSyntaxAudit/views"
 
 	"github.com/gin-gonic/gin"
 )
 
-func ApiRouterInit(r *gin.Engine) {
+func SetupRouter(r *gin.Engine) *gin.Engine {
 	v1 := r.Group("/api/v1")
 	{
 		v1.POST("/audit", views.SyntaxInspect)
 	}
+	return r
 }

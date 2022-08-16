@@ -129,6 +129,26 @@ func (c *Checker) Parse() error {
 	return nil
 }
 
+func (c *Checker) CreateViewStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
+	// 建视图语句
+	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DDL", Level: "INFO"}
+	for _, rule := range CreateViewRules() {
+		rule.DB = c.DB
+		rule.KV = kv
+		rule.CheckFunc(&rule, &stmt)
+		if len(rule.Summary) > 0 {
+			// 检查不通过
+			data.Level = "WARN"
+			data.Summary = append(data.Summary, rule.Summary...)
+		}
+		if rule.IsSkipNextStep {
+			// 如果IsSkipNextStep为true，跳过接下来的检查步骤
+			break
+		}
+	}
+	return data
+}
+
 func (c *Checker) CreateTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
 	// 建表语句
 	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DDL", Level: "INFO"}
@@ -283,8 +303,10 @@ func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 		kv.Put(fingerId, true)
 		// 迭代
 		switch stmt.(type) {
-		case *ast.CreateTableStmt, *ast.CreateViewStmt:
+		case *ast.CreateTableStmt:
 			returnData = append(returnData, c.CreateTableStmt(stmt, kv, fingerId))
+		case *ast.CreateViewStmt:
+			returnData = append(returnData, c.CreateViewStmt(stmt, kv, fingerId))
 		case *ast.AlterTableStmt:
 			data, mergeAlter := c.AlterTableStmt(stmt, kv, fingerId)
 			mergeAlters = append(mergeAlters, mergeAlter)

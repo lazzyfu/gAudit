@@ -73,25 +73,6 @@ func (c *TraverseCreateTableLike) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
 
-// TraverseCreateTableView
-type TraverseCreateTableView struct {
-	Table        string // 表名
-	IsCreateView bool   // 是否为create table like语法
-}
-
-func (c *TraverseCreateTableView) Enter(in ast.Node) (ast.Node, bool) {
-	// todo: 验证视图select表是否存在
-	if stmt, ok := in.(*ast.CreateViewStmt); ok {
-		c.Table = stmt.ViewName.Name.String()
-		c.IsCreateView = true
-	}
-	return in, false
-}
-
-func (c *TraverseCreateTableView) Leave(in ast.Node) (ast.Node, bool) {
-	return in, true
-}
-
 // TraverseCreateTableOptions
 type TraverseCreateTableOptions struct {
 	process.TableOptions

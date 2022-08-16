@@ -29,13 +29,14 @@ func main() {
 	global.App.AuditConfig = config.InitializeAuditConfig(*configFile)
 
 	r := gin.New()
+
 	r.Use(gin.Recovery())
 	logger.Setup()
 	r.Use(requestid.New())
 	r.Use(logger.LoggerToFile())
 
 	// 路由
-	routers.ApiRouterInit(r)
+	routers.SetupRouter(r)
 
 	// 启动
 	err := r.Run(global.App.AuditConfig.ListenAddress)

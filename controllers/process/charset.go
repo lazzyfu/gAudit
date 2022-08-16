@@ -43,7 +43,7 @@ func (c *Charset) CheckTable() error {
 	*/
 	if !utils.IsContain(c.SupportCharset, c.Table.Charset) {
 		if c.Table.Charset == "" {
-			return fmt.Errorf("表`%s`必须指定字符集,可选字符集为%s「例如:DEFAULT CHARSET=utf8mb4」", c.Table.Table, c.SupportCharset)
+			return fmt.Errorf("表`%s`必须指定字符集,可选字符集为%s【例如:DEFAULT CHARSET=utf8mb4】", c.Table.Table, c.SupportCharset)
 		} else {
 			return fmt.Errorf("表`%s`指定的字符集`%s`不符合要求,可选字符集为%s", c.Table.Table, c.Table.Charset, c.SupportCharset)
 		}

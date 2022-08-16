@@ -138,7 +138,7 @@ func (t *TableOptions) CheckTableAutoIncrementInitValue() error {
 	if global.App.AuditConfig.CHECK_TABLE_AUTOINCREMENT_INIT_VALUE {
 		if t.AutoIncrement != 1 && t.Type == "create" {
 			// create语句自增值需要设置为1
-			return fmt.Errorf("表`%s`的自增列初始值必须显式指定且设置为1「例如:AUTO_INCREMENT=1」", t.Table)
+			return fmt.Errorf("表`%s`的自增列初始值必须显式指定且设置为1【例如:AUTO_INCREMENT=1】", t.Table)
 		}
 	}
 	return nil

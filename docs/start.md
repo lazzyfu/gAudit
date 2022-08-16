@@ -113,7 +113,7 @@ curl --request POST '127.0.0.1:8081/api/v1/audit' \
     "data": [
         {
             "summary": [
-                "表`meta_cluster`的自增列初始值必须显示指定且设置为1「例如:AUTO_INCREMENT=1」",
+                "表`meta_cluster`的自增列初始值必须显示指定且设置为1【例如:AUTO_INCREMENT=1】",
                 "表`meta_cluster`的主键id必须定义unsigned",
                 "表`meta_cluster`的主键`id`必须定义auto_increment",
                 "表`meta_cluster`的主键id必须定义NOT NULL",
@@ -123,7 +123,7 @@ curl --request POST '127.0.0.1:8081/api/v1/audit' \
                 "列`promotion_rule`需要设置一个默认值[表`meta_cluster`]",
                 "列`port`命名不允许使用关键字[表`meta_cluster`]",
                 "表`meta_cluster`最多允许定义3个二级索引,当前二级索引个数为4",
-                "表`meta_cluster`的索引`idx_adress`超出了innodb-large-prefix限制,当前索引长度为21317字节,最大限制为3072字节,当前字符集为utf8mb4「可使用前缀索引,如:Field(length)」"
+                "表`meta_cluster`的索引`idx_adress`超出了innodb-large-prefix限制,当前索引长度为21317字节,最大限制为3072字节,当前字符集为utf8mb4【可使用前缀索引,如:Field(length)】"
             ],
             "level": "WARN",
             "affected_rows": 0,

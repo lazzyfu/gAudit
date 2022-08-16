@@ -16,7 +16,7 @@ import (
 
 // LogicCreateTableIsExist
 func LogicCreateTableIsExist(v *TraverseCreateTableIsExist, r *Rule) {
-	// 检查表是否存在，如果表存在，skip下面的检查
+	// 检查表是否存在,如果表存在,skip下面的检查
 	if err, msg := DescTable(v.Table, r.DB); err == nil {
 		r.Summary = append(r.Summary, msg)
 		r.IsSkipNextStep = true
@@ -39,16 +39,6 @@ func LogicCreateTableLike(v *TraverseCreateTableLike, r *Rule) {
 	if v.IsCreateLike {
 		if !global.App.AuditConfig.ENABLE_CREATE_TABLE_LIKE {
 			r.Summary = append(r.Summary, fmt.Sprintf("不允许使用create table like语法[表`%s`]", v.Table))
-			r.IsSkipNextStep = true
-		}
-	}
-}
-
-// LogicCreateTableView
-func LogicCreateTableView(v *TraverseCreateTableView, r *Rule) {
-	if v.IsCreateView {
-		if !global.App.AuditConfig.ENABLE_CREATE_VIEW {
-			r.Summary = append(r.Summary, fmt.Sprintf("不允许创建视图[视图名`%s`]", v.Table))
 			r.IsSkipNextStep = true
 		}
 	}
@@ -123,10 +113,10 @@ func LogicCreateTableAuditCols(v *TraverseCreateTableAuditCols, r *Rule) {
 			}
 		}
 		if !utils.IsContain(colsOptionsArray, "DEFAULT CURRENT_TIMESTAMP") {
-			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`未定义字段类型为%s的审计字段「例如:CREATED_AT datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'」", v.Table, "DEFAULT CURRENT_TIMESTAMP"))
+			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`未定义字段类型为%s的审计字段【例如:CREATED_AT datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'】", v.Table, "DEFAULT CURRENT_TIMESTAMP"))
 		}
 		if !utils.IsContain(colsOptionsArray, "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP") {
-			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`未定义字段类型为%s的审计字段「例如:UPDATED_AT datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'」", v.Table, "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`未定义字段类型为%s的审计字段【例如:UPDATED_AT datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'】", v.Table, "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 		}
 	}
 }

@@ -80,7 +80,7 @@ func LogicDMLInsertWithColumns(v *TraverseDMLInsertWithColumns, r *Rule) {
 		r.Summary = append(r.Summary, fmt.Sprintf("%s语句指定的列数量和值的数量不匹配", v.DMLType))
 	}
 	if v.RowsCount > global.App.AuditConfig.MAX_INSERT_ROWS {
-		r.Summary = append(r.Summary, fmt.Sprintf("%s语句单次最多允许的行数为%d,当前行数为%d「可以拆分为多条%s语句」", v.DMLType, global.App.AuditConfig.MAX_INSERT_ROWS, v.RowsCount, v.DMLType))
+		r.Summary = append(r.Summary, fmt.Sprintf("%s语句单次最多允许的行数为%d,当前行数为%d【建议拆分为多条%s语句】", v.DMLType, global.App.AuditConfig.MAX_INSERT_ROWS, v.RowsCount, v.DMLType))
 	}
 }
 
