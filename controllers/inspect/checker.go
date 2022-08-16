@@ -303,6 +303,11 @@ func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 		kv.Put(fingerId, true)
 		// 迭代
 		switch stmt.(type) {
+		case *ast.SelectStmt:
+			// select语句不允许审核
+			var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DML", Level: "WARN"}
+			data.Summary = append(data.Summary, "发现SELECT语句,请删除SELECT语句后重新审核")
+			returnData = append(returnData, data)
 		case *ast.CreateTableStmt:
 			returnData = append(returnData, c.CreateTableStmt(stmt, kv, fingerId))
 		case *ast.CreateViewStmt:
@@ -315,6 +320,11 @@ func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 			returnData = append(returnData, c.DropTableStmt(stmt, kv, fingerId))
 		case *ast.DeleteStmt, *ast.InsertStmt, *ast.UpdateStmt:
 			returnData = append(returnData, c.DMLStmt(stmt, kv, fingerId))
+		default:
+			// 不允许的其他语句
+			var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "", Level: "WARN"}
+			data.Summary = append(data.Summary, "不被允许的审核语句")
+			returnData = append(returnData, data)
 		}
 	}
 	if len(mergeAlters) > 1 {
