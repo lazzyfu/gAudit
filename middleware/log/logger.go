@@ -100,7 +100,7 @@ func LoggerToFile() gin.HandlerFunc {
 		endTime := time.Now()
 
 		// 执行时间
-		latencyTime := fmt.Sprintf("%.3dms", endTime.Sub(startTime)/1e6)
+		latencyTime := fmt.Sprintf("%dms", endTime.Sub(startTime).Milliseconds())
 
 		// 请求方式
 		reqMethod := c.Request.Method

@@ -274,6 +274,9 @@ func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 	c.InitDB()
 	var mergeAlters []string // 存放alter语句中的表名
 
+	// 记录下审计sql
+	logger.AppLog.WithFields(logrus.Fields{"request_id": RequestID}).Info(c.Form.SqlText)
+
 	// 每次请求基于RequestID初始化kv cache
 	kv := kv.NewKVCache(RequestID)
 	// 获取目标数据库变量
