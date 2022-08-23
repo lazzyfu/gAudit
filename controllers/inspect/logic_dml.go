@@ -129,7 +129,7 @@ func LogicDMLMaxUpdateRows(v *TraverseDMLMaxUpdateRows, r *Rule) {
 	}
 	if affectedRows > global.App.AuditConfig.MAX_AFFECTED_ROWS {
 		r.AffectedRows = affectedRows
-		r.Summary = append(r.Summary, fmt.Sprintf("当前%s语句最大影响行数超过了最大允许值%d", v.DMLType, global.App.AuditConfig.MAX_AFFECTED_ROWS))
+		r.Summary = append(r.Summary, fmt.Sprintf("当前%s语句最大影响或扫描行数超过了最大允许值%d【建议:您可以将语句拆分为多条,保证每条语句影响或扫描行数小于最大允许值%d】", v.DMLType, global.App.AuditConfig.MAX_AFFECTED_ROWS, global.App.AuditConfig.MAX_AFFECTED_ROWS))
 		r.IsSkipNextStep = true
 		return
 	}

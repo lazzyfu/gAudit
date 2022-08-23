@@ -133,12 +133,12 @@ func (t *TableOptions) CheckTableCharset() error {
 	return nil
 }
 
-// 建表时，自增列初始值必须设置为1
+// 建表时，自增初始值必须设置为1
 func (t *TableOptions) CheckTableAutoIncrementInitValue() error {
 	if global.App.AuditConfig.CHECK_TABLE_AUTOINCREMENT_INIT_VALUE {
 		if t.AutoIncrement != 1 && t.Type == "create" {
 			// create语句自增值需要设置为1
-			return fmt.Errorf("表`%s`的自增列初始值必须显式指定且设置为1【例如:AUTO_INCREMENT=1】", t.Table)
+			return fmt.Errorf("表`%s`的自增初始值必须显式指定且设置为1【例如:ENGINE = InnoDB AUTO_INCREMENT=1】", t.Table)
 		}
 	}
 	return nil
