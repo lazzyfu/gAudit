@@ -25,7 +25,7 @@ type PrimaryKey struct {
 func (p *PrimaryKey) CheckBigint() error {
 	if p.Tp != mysql.TypeLonglong && global.App.AuditConfig.CHECK_PRIMARYKEY_USE_BIGINT {
 		// 必须使用bigint类型
-		return fmt.Errorf("表`%s`的主键%s必须使用bigint类型", p.Table, p.Column)
+		return fmt.Errorf("主键`%s`必须使用bigint类型[表`%s`]", p.Column, p.Table)
 	}
 	return nil
 }
@@ -33,7 +33,7 @@ func (p *PrimaryKey) CheckBigint() error {
 func (p *PrimaryKey) CheckUnsigned() error {
 	if !mysql.HasUnsignedFlag(p.Flag) && global.App.AuditConfig.CHECK_PRIMARYKEY_USE_UNSIGNED {
 		// bigint必须定义unsigned
-		return fmt.Errorf("表`%s`的主键%s必须定义unsigned", p.Table, p.Column)
+		return fmt.Errorf("主键`%s`必须定义unsigned[表`%s`]", p.Column, p.Table)
 	}
 	return nil
 }
@@ -41,7 +41,7 @@ func (p *PrimaryKey) CheckUnsigned() error {
 func (p *PrimaryKey) CheckAutoIncrement() error {
 	if !p.HasAutoIncrement && global.App.AuditConfig.CHECK_PRIMARYKEY_USE_AUTO_INCREMENT {
 		// 必须定义AUTO_INCREMENT
-		return fmt.Errorf("表`%s`的主键`%s`必须定义auto_increment", p.Table, p.Column)
+		return fmt.Errorf("主键`%s`必须定义auto_increment[表`%s`]", p.Column, p.Table)
 	}
 	return nil
 }
@@ -49,7 +49,7 @@ func (p *PrimaryKey) CheckAutoIncrement() error {
 func (p *PrimaryKey) CheckNotNull() error {
 	if !p.HasNotNull {
 		// 必须定义NOT NULL
-		return fmt.Errorf("表`%s`的主键%s必须定义NOT NULL", p.Table, p.Column)
+		return fmt.Errorf("主键`%s`必须定义NOT NULL[表`%s`]", p.Column, p.Table)
 	}
 	return nil
 }

@@ -193,6 +193,26 @@ func (c *Checker) AlterTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId str
 	return data, mergeAlter
 }
 
+func (c *Checker) RenameTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
+	// rename table语句
+	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DDL", Level: "INFO"}
+	for _, rule := range RenameTableRules() {
+		rule.DB = c.DB
+		rule.KV = kv
+		rule.CheckFunc(&rule, &stmt)
+		if len(rule.Summary) > 0 {
+			// 检查不通过
+			data.Level = "WARN"
+			data.Summary = append(data.Summary, rule.Summary...)
+		}
+		if rule.IsSkipNextStep {
+			// 如果IsSkipNextStep为true，跳过接下来的检查步骤
+			break
+		}
+	}
+	return data
+}
+
 func (c *Checker) DropTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
 	// drop/truncate语句
 	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DDL", Level: "INFO"}
@@ -323,10 +343,12 @@ func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 			returnData = append(returnData, c.DropTableStmt(stmt, kv, fingerId))
 		case *ast.DeleteStmt, *ast.InsertStmt, *ast.UpdateStmt:
 			returnData = append(returnData, c.DMLStmt(stmt, kv, fingerId))
+		case *ast.RenameTableStmt:
+			returnData = append(returnData, c.RenameTableStmt(stmt, kv, fingerId))
 		default:
-			// 不允许的其他语句
+			// 不允许的其他语句，有需求可以扩展
 			var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "", Level: "WARN"}
-			data.Summary = append(data.Summary, "不被允许的审核语句")
+			data.Summary = append(data.Summary, "不被允许的审核语句,请联系数据库管理员")
 			returnData = append(returnData, data)
 		}
 	}
