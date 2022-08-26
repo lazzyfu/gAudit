@@ -8,7 +8,6 @@ package inspect
 
 import (
 	"fmt"
-	"sqlSyntaxAudit/global"
 )
 
 // LogicRenameTable
@@ -16,7 +15,7 @@ func LogicRenameTable(v *TraverseRenameTable, r *Rule) {
 	if v.IsMatch == 0 {
 		return
 	}
-	if !global.App.AuditConfig.ENABLE_RENAME_TABLE_NAME {
+	if !r.AuditConfig.ENABLE_RENAME_TABLE_NAME {
 		r.Summary = append(r.Summary, fmt.Sprintf("不允许RENAME表名[表`%s`]", v.OldTable))
 		return
 	}

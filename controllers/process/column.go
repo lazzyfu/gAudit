@@ -9,7 +9,7 @@ package process
 import (
 	"fmt"
 	"sqlSyntaxAudit/common/utils"
-	"sqlSyntaxAudit/global"
+	"sqlSyntaxAudit/config"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -29,19 +29,20 @@ type ColOptions struct {
 	DefaultValue    interface{} // 列的默认值
 	DefaultIsNull   bool        // 列默认值是否为NULL
 	HasComment      bool        // 是否有注释
+	AuditConfig     *config.AuditConfiguration
 }
 
 // 检查列名长度
 func (c *ColOptions) CheckColumnLength() error {
-	if utf8.RuneCountInString(c.Column) > global.App.AuditConfig.MAX_COLUMN_NAME_LENGTH {
-		return fmt.Errorf("列`%s`字符数超出限制,最大字符限制为%d[表`%s`]", c.Column, global.App.AuditConfig.MAX_COLUMN_NAME_LENGTH, c.Table)
+	if utf8.RuneCountInString(c.Column) > c.AuditConfig.MAX_COLUMN_NAME_LENGTH {
+		return fmt.Errorf("列`%s`字符数超出限制,最大字符限制为%d[表`%s`]", c.Column, c.AuditConfig.MAX_COLUMN_NAME_LENGTH, c.Table)
 	}
 	return nil
 }
 
 // 检查列名合法性
 func (c *ColOptions) CheckColumnIdentifer() error {
-	if global.App.AuditConfig.CHECK_IDENTIFIER {
+	if c.AuditConfig.CHECK_IDENTIFIER {
 		if ok := utils.IsMatchPattern(utils.NamePattern, c.Column); !ok {
 			return fmt.Errorf("列`%s`命名不符合要求[表`%s`]", c.Column, c.Table)
 		}
@@ -51,7 +52,7 @@ func (c *ColOptions) CheckColumnIdentifer() error {
 
 // 检查列名是否为关键字
 func (c *ColOptions) CheckColumnIdentiferKeyword() error {
-	if global.App.AuditConfig.CHECK_IDENTIFER_KEYWORD {
+	if c.AuditConfig.CHECK_IDENTIFER_KEYWORD {
 		if _, ok := Keywords[strings.ToUpper(c.Column)]; ok {
 			return fmt.Errorf("列`%s`命名不允许使用关键字[表`%s`]", c.Column, c.Table)
 		}
@@ -61,7 +62,7 @@ func (c *ColOptions) CheckColumnIdentiferKeyword() error {
 
 // 检查列注释
 func (c *ColOptions) CheckColumnComment() error {
-	if global.App.AuditConfig.CHECK_COLUMN_COMMENT && !c.HasComment {
+	if c.AuditConfig.CHECK_COLUMN_COMMENT && !c.HasComment {
 		return fmt.Errorf("列`%s`必须要有注释[表`%s`]", c.Column, c.Table)
 	}
 	return nil
@@ -69,7 +70,7 @@ func (c *ColOptions) CheckColumnComment() error {
 
 // char建议转换为varchar
 func (c *ColOptions) CheckColumnCharToVarchar() error {
-	if global.App.AuditConfig.COLUMN_MAX_CHAR_LENGTH < c.Flen && c.Tp == mysql.TypeString {
+	if c.AuditConfig.COLUMN_MAX_CHAR_LENGTH < c.Flen && c.Tp == mysql.TypeString {
 		return fmt.Errorf("列`%s`推荐设置为varchar(%d)[表`%s`]", c.Column, c.Flen, c.Table)
 	}
 	return nil
@@ -77,15 +78,15 @@ func (c *ColOptions) CheckColumnCharToVarchar() error {
 
 // 最大允许定义的varchar长度
 func (c *ColOptions) CheckColumnMaxVarcharLength() error {
-	if global.App.AuditConfig.MAX_VARCHAR_LENGTH < c.Flen && c.Tp == mysql.TypeVarchar {
-		return fmt.Errorf("列`%s`最大允许定义的varchar长度为%d,当前varchar长度为%d[表`%s`]", c.Column, global.App.AuditConfig.MAX_VARCHAR_LENGTH, c.Flen, c.Table)
+	if c.AuditConfig.MAX_VARCHAR_LENGTH < c.Flen && c.Tp == mysql.TypeVarchar {
+		return fmt.Errorf("列`%s`最大允许定义的varchar长度为%d,当前varchar长度为%d[表`%s`]", c.Column, c.AuditConfig.MAX_VARCHAR_LENGTH, c.Flen, c.Table)
 	}
 	return nil
 }
 
 // 将float/double转成int/bigint/decimal等
 func (c *ColOptions) CheckColumnFloatDouble() error {
-	if global.App.AuditConfig.CHECK_COLUMN_FLOAT_DOUBLE {
+	if c.AuditConfig.CHECK_COLUMN_FLOAT_DOUBLE {
 		if c.Tp == mysql.TypeFloat || c.Tp == mysql.TypeDouble {
 			return fmt.Errorf("列`%s`的类型为float或double,建议转换为int/bigint/decimal类型[表`%s`]", c.Column, c.Table)
 		}
@@ -95,16 +96,16 @@ func (c *ColOptions) CheckColumnFloatDouble() error {
 
 // 列不允许定义的类型
 func (c *ColOptions) CheckColumnNotAllowedType() error {
-	if !global.App.AuditConfig.ENABLE_COLUMN_JSON_TYPE && c.Tp == mysql.TypeJSON {
+	if !c.AuditConfig.ENABLE_COLUMN_JSON_TYPE && c.Tp == mysql.TypeJSON {
 		return fmt.Errorf("列`%s`不允许定义JSON类型[表`%s`]", c.Column, c.Table)
 	}
-	if !global.App.AuditConfig.ENABLE_COLUMN_BLOB_TYPE && (c.Tp == mysql.TypeTinyBlob || c.Tp == mysql.TypeMediumBlob || c.Tp == mysql.TypeLongBlob || c.Tp == mysql.TypeBlob) {
+	if !c.AuditConfig.ENABLE_COLUMN_BLOB_TYPE && (c.Tp == mysql.TypeTinyBlob || c.Tp == mysql.TypeMediumBlob || c.Tp == mysql.TypeLongBlob || c.Tp == mysql.TypeBlob) {
 		return fmt.Errorf("列`%s`不允许定义BLOB/TEXT类型[表`%s`]", c.Table, c.Column)
 	}
-	if !global.App.AuditConfig.ENABLE_COLUMN_TIMESTAMP_TYPE && c.Tp == mysql.TypeTimestamp {
+	if !c.AuditConfig.ENABLE_COLUMN_TIMESTAMP_TYPE && c.Tp == mysql.TypeTimestamp {
 		return fmt.Errorf("列`%s`不允许定义TIMESTAMP类型[表`%s`]", c.Column, c.Table)
 	}
-	if !global.App.AuditConfig.ENABLE_COLUMN_BIT_TYPE && c.Tp == mysql.TypeBit {
+	if !c.AuditConfig.ENABLE_COLUMN_BIT_TYPE && c.Tp == mysql.TypeBit {
 		return fmt.Errorf("列`%s`不允许定义BIT类型[表`%s`]", c.Column, c.Table)
 	}
 	return nil
@@ -112,13 +113,13 @@ func (c *ColOptions) CheckColumnNotAllowedType() error {
 
 // 检查列not null
 func (c *ColOptions) CheckColumnNotNull() error {
-	if !global.App.AuditConfig.ENABLE_COLUMN_NOT_NULL {
+	if !c.AuditConfig.ENABLE_COLUMN_NOT_NULL {
 		return nil
 	}
 	// 允许为NULL的类型
 	allowNULLType := []byte{mysql.TypeBlob, mysql.TypeTinyBlob, mysql.TypeMediumBlob, mysql.TypeLongBlob, mysql.TypeJSON}
 	// 是否允许时间类型设置为null
-	if global.App.AuditConfig.ENABLE_COLUMN_TIME_NULL {
+	if c.AuditConfig.ENABLE_COLUMN_TIME_NULL {
 		allowNULLType = append(allowNULLType, []byte{mysql.TypeDatetime, mysql.TypeTimestamp, mysql.TypeDate, mysql.TypeYear}...)
 	}
 	// 列必须定义NOT NULL
@@ -142,7 +143,7 @@ func (c *ColOptions) CheckColumnDefaultValue() error {
 		}
 	}
 	// 列需要设置默认值
-	if global.App.AuditConfig.CHECK_COLUMN_DEFAULT_VALUE && !c.HasDefaultValue && !utils.IsByteContain(cannotSetDefaultValueType, c.Tp) {
+	if c.AuditConfig.CHECK_COLUMN_DEFAULT_VALUE && !c.HasDefaultValue && !utils.IsByteContain(cannotSetDefaultValueType, c.Tp) {
 		return fmt.Errorf("列`%s`需要设置一个默认值[表`%s`]", c.Column, c.Table)
 	}
 	// 检查默认值(有默认值、且不为NULL)和数据类型是否匹配，Invalid default value

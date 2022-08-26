@@ -10,7 +10,6 @@ import (
 	"errors"
 	"sqlSyntaxAudit/common/kv"
 	"sqlSyntaxAudit/common/utils"
-	"sqlSyntaxAudit/global"
 	"strconv"
 	"strings"
 
@@ -40,7 +39,7 @@ func (e Explain) ConvertToExplain() string {
 	return strings.Join(explain, "")
 }
 
-func (e *Explain) Get() (int, error) {
+func (e *Explain) Get(EXPLAIN_RULE string) (int, error) {
 	explainSQL := e.ConvertToExplain()
 	if !strings.HasPrefix(explainSQL, "EXPLAIN") {
 		return 0, errors.New("Explain语句未检测到以`EXPLAIN`开头,请联系管理员")
@@ -73,10 +72,10 @@ func (e *Explain) Get() (int, error) {
 			AffectedRows = append(AffectedRows, item.Rows)
 		}
 	}
-	if global.App.AuditConfig.EXPLAIN_RULE == "first" {
+	if EXPLAIN_RULE == "first" {
 		return AffectedRows[0], nil
 	}
-	if global.App.AuditConfig.EXPLAIN_RULE == "max" {
+	if EXPLAIN_RULE == "max" {
 		return utils.MaxInt(AffectedRows), nil
 	}
 	return 0, nil

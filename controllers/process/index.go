@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"sqlSyntaxAudit/common/kv"
 	"sqlSyntaxAudit/common/utils"
-	"sqlSyntaxAudit/global"
+	"sqlSyntaxAudit/config"
 	logger "sqlSyntaxAudit/middleware/log"
 	"strings"
 )
@@ -21,12 +21,13 @@ type IndexPrefix struct {
 	UniqueKeys    []string
 	SecondaryKeys []string
 	FulltextKeys  []string
+	AuditConfig   *config.AuditConfiguration
 }
 
 func (i *IndexPrefix) CheckUniquePrefix() error {
 	var unMatchKeys []string
 	for _, key := range i.UniqueKeys {
-		if global.App.AuditConfig.CHECK_IDENTIFIER {
+		if i.AuditConfig.CHECK_IDENTIFIER {
 			if ok := utils.IsMatchPattern(utils.NamePattern, key); !ok {
 				return fmt.Errorf("索引`%s`命名不符合要求,仅允许匹配正则`%s`[表`%s`]", key, utils.NamePattern, i.Table)
 			}
@@ -34,12 +35,12 @@ func (i *IndexPrefix) CheckUniquePrefix() error {
 		if len(key) == 0 {
 			return fmt.Errorf("表`%s`必须显式指定唯一索引名称", i.Table)
 		}
-		if !utils.HasPrefix(key, global.App.AuditConfig.UNQI_INDEX_PREFIX, false) {
+		if !utils.HasPrefix(key, i.AuditConfig.UNQI_INDEX_PREFIX, false) {
 			unMatchKeys = append(unMatchKeys, key)
 		}
 	}
 	if len(unMatchKeys) > 0 {
-		return fmt.Errorf("唯一索引前缀不符合要求,必须以`%s`开头(不区分大小写)[表`%s`]", global.App.AuditConfig.UNQI_INDEX_PREFIX, i.Table)
+		return fmt.Errorf("唯一索引前缀不符合要求,必须以`%s`开头(不区分大小写)[表`%s`]", i.AuditConfig.UNQI_INDEX_PREFIX, i.Table)
 	}
 	return nil
 }
@@ -47,7 +48,7 @@ func (i *IndexPrefix) CheckUniquePrefix() error {
 func (i *IndexPrefix) CheckSecondaryPrefix() error {
 	var unMatchKeys []string
 	for _, key := range i.SecondaryKeys {
-		if global.App.AuditConfig.CHECK_IDENTIFIER {
+		if i.AuditConfig.CHECK_IDENTIFIER {
 			if ok := utils.IsMatchPattern(utils.NamePattern, key); !ok {
 				return fmt.Errorf("索引`%s`命名不符合要求,仅允许匹配正则`%s`[表`%s`]", key, utils.NamePattern, i.Table)
 			}
@@ -55,12 +56,12 @@ func (i *IndexPrefix) CheckSecondaryPrefix() error {
 		if len(key) == 0 {
 			return fmt.Errorf("表`%s`必须显式指定二级索引名称", i.Table)
 		}
-		if !utils.HasPrefix(key, global.App.AuditConfig.SECONDARY_INDEX_PREFIX, false) {
+		if !utils.HasPrefix(key, i.AuditConfig.SECONDARY_INDEX_PREFIX, false) {
 			unMatchKeys = append(unMatchKeys, key)
 		}
 	}
 	if len(unMatchKeys) > 0 {
-		return fmt.Errorf("二级索引前缀不符合要求,必须以`%s`开头(不区分大小写)[表`%s`]", global.App.AuditConfig.SECONDARY_INDEX_PREFIX, i.Table)
+		return fmt.Errorf("二级索引前缀不符合要求,必须以`%s`开头(不区分大小写)[表`%s`]", i.AuditConfig.SECONDARY_INDEX_PREFIX, i.Table)
 	}
 	return nil
 }
@@ -68,7 +69,7 @@ func (i *IndexPrefix) CheckSecondaryPrefix() error {
 func (i *IndexPrefix) CheckFulltextPrefix() error {
 	var unMatchKeys []string
 	for _, key := range i.FulltextKeys {
-		if global.App.AuditConfig.CHECK_IDENTIFIER {
+		if i.AuditConfig.CHECK_IDENTIFIER {
 			if ok := utils.IsMatchPattern(utils.NamePattern, key); !ok {
 				return fmt.Errorf("索引`%s`命名不符合要求,仅允许匹配正则`%s`[表`%s`]", key, utils.NamePattern, i.Table)
 			}
@@ -76,12 +77,12 @@ func (i *IndexPrefix) CheckFulltextPrefix() error {
 		if len(key) == 0 {
 			return fmt.Errorf("表`%s`必须显式指定全文索引名称", i.Table)
 		}
-		if !utils.HasPrefix(key, global.App.AuditConfig.FULLTEXT_INDEX_PREFIX, false) {
+		if !utils.HasPrefix(key, i.AuditConfig.FULLTEXT_INDEX_PREFIX, false) {
 			unMatchKeys = append(unMatchKeys, key)
 		}
 	}
 	if len(unMatchKeys) > 0 {
-		return fmt.Errorf("全文索引前缀不符合要求,必须以`%s`开头(不区分大小写)[表`%s`]", global.App.AuditConfig.FULLTEXT_INDEX_PREFIX, i.Table)
+		return fmt.Errorf("全文索引前缀不符合要求,必须以`%s`开头(不区分大小写)[表`%s`]", i.AuditConfig.FULLTEXT_INDEX_PREFIX, i.Table)
 	}
 	return nil
 }
@@ -92,15 +93,16 @@ type IndexLen struct {
 	Len   int
 }
 type IndexNumber struct {
-	Table  string
-	Number int        // 二级索引的个数
-	Keys   []IndexLen // 存储索引名和组成索引列的个数
+	Table       string
+	Number      int        // 二级索引的个数
+	Keys        []IndexLen // 存储索引名和组成索引列的个数
+	AuditConfig *config.AuditConfiguration
 }
 
 // 最多有N个二级索引,包括唯一索引
 func (i *IndexNumber) CheckSecondaryIndexesNum() error {
-	if i.Number > global.App.AuditConfig.MAX_INDEX_KEYS {
-		return fmt.Errorf("表`%s`最多允许定义%d个二级索引,当前二级索引个数为%d", i.Table, global.App.AuditConfig.MAX_INDEX_KEYS, i.Number)
+	if i.Number > i.AuditConfig.MAX_INDEX_KEYS {
+		return fmt.Errorf("表`%s`最多允许定义%d个二级索引,当前二级索引个数为%d", i.Table, i.AuditConfig.MAX_INDEX_KEYS, i.Number)
 	}
 	return nil
 }
@@ -110,13 +112,13 @@ func (i *IndexNumber) CheckPrimaryKeyColsNum() error {
 	for _, item := range i.Keys {
 		if item.Index == "PrimaryKey" {
 			// 主键索引列数不能超过指定的个数
-			if item.Len > global.App.AuditConfig.PRIMARYKEY_MAX_KEY_PARTS {
-				return fmt.Errorf("表`%s`的主键索引`PRIMARY KEY`最多允许组成列数为%d,当前列数为%d", i.Table, global.App.AuditConfig.PRIMARYKEY_MAX_KEY_PARTS, item.Len)
+			if item.Len > i.AuditConfig.PRIMARYKEY_MAX_KEY_PARTS {
+				return fmt.Errorf("表`%s`的主键索引`PRIMARY KEY`最多允许组成列数为%d,当前列数为%d", i.Table, i.AuditConfig.PRIMARYKEY_MAX_KEY_PARTS, item.Len)
 			}
 		} else {
 			// 二级索引的列数不能超过指定的个数,包括唯一索引
-			if item.Len > global.App.AuditConfig.SECONDARY_INDEX_MAX_KEY_PARTS {
-				return fmt.Errorf("表`%s`的二级索引`%s`最多允许组成列数为%d,当前列数为%d", i.Table, item.Index, global.App.AuditConfig.SECONDARY_INDEX_MAX_KEY_PARTS, item.Len)
+			if item.Len > i.AuditConfig.SECONDARY_INDEX_MAX_KEY_PARTS {
+				return fmt.Errorf("表`%s`的二级索引`%s`最多允许组成列数为%d,当前列数为%d", i.Table, item.Index, i.AuditConfig.SECONDARY_INDEX_MAX_KEY_PARTS, item.Len)
 			}
 		}
 	}

@@ -8,7 +8,6 @@ package inspect
 
 import (
 	"fmt"
-	"sqlSyntaxAudit/global"
 )
 
 // LogicDropTable
@@ -17,7 +16,7 @@ func LogicDropTable(v *TraverseDropTable, r *Rule) {
 		return
 	}
 	if v.IsHasDropTable {
-		if !global.App.AuditConfig.ENABLE_DROP_TABLE {
+		if !r.AuditConfig.ENABLE_DROP_TABLE {
 			r.Summary = append(r.Summary, fmt.Sprintf("禁止DROP[表%s]", v.Tables))
 			return
 		}
@@ -36,7 +35,7 @@ func LogicTruncateTable(v *TraverseTruncateTable, r *Rule) {
 		return
 	}
 	if v.IsHasTruncateTable {
-		if !global.App.AuditConfig.ENABLE_TRUNCATE_TABLE {
+		if !r.AuditConfig.ENABLE_TRUNCATE_TABLE {
 			r.Summary = append(r.Summary, fmt.Sprintf("禁止TRUNCATE[表%s]", v.Table))
 			return
 		}

@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"sqlSyntaxAudit/common/utils"
 	"sqlSyntaxAudit/controllers/process"
-	"sqlSyntaxAudit/global"
 	"strings"
 )
 
@@ -27,7 +26,7 @@ func LogicCreateTableIsExist(v *TraverseCreateTableIsExist, r *Rule) {
 func LogicCreateTableAs(v *TraverseCreateTableAs, r *Rule) {
 	if v.IsCreateAs {
 		// 不深入检查AS后面的语法
-		if !global.App.AuditConfig.ENABLE_CREATE_TABLE_AS {
+		if !r.AuditConfig.ENABLE_CREATE_TABLE_AS {
 			r.Summary = append(r.Summary, fmt.Sprintf("不允许使用create table as语法[表`%s`]", v.Table))
 			r.IsSkipNextStep = true
 		}
@@ -37,7 +36,7 @@ func LogicCreateTableAs(v *TraverseCreateTableAs, r *Rule) {
 // LogicCreateTableLike
 func LogicCreateTableLike(v *TraverseCreateTableLike, r *Rule) {
 	if v.IsCreateLike {
-		if !global.App.AuditConfig.ENABLE_CREATE_TABLE_LIKE {
+		if !r.AuditConfig.ENABLE_CREATE_TABLE_LIKE {
 			r.Summary = append(r.Summary, fmt.Sprintf("不允许使用create table like语法[表`%s`]", v.Table))
 			r.IsSkipNextStep = true
 		}
@@ -47,6 +46,7 @@ func LogicCreateTableLike(v *TraverseCreateTableLike, r *Rule) {
 // LogicCreateTableOptions
 func LogicCreateTableOptions(v *TraverseCreateTableOptions, r *Rule) {
 	v.Type = "create"
+	v.TableOptions.AuditConfig = r.AuditConfig
 	fns := []func() error{
 		v.CheckTableLength,
 		v.CheckTableIdentifer,
@@ -57,8 +57,8 @@ func LogicCreateTableOptions(v *TraverseCreateTableOptions, r *Rule) {
 		v.CheckTableCharset,
 		v.CheckTableAutoIncrementInitValue,
 	}
-	for _, fns := range fns {
-		if err := fns(); err != nil {
+	for _, fn := range fns {
+		if err := fn(); err != nil {
 			r.Summary = append(r.Summary, err.Error())
 		}
 	}
@@ -67,7 +67,7 @@ func LogicCreateTableOptions(v *TraverseCreateTableOptions, r *Rule) {
 // LogicCreateTablePrimaryKey
 func LogicCreateTablePrimaryKey(v *TraverseCreateTablePrimaryKey, r *Rule) {
 	// 必须定义主键
-	if global.App.AuditConfig.CHECK_TABLE_PRIMARY_KEY {
+	if r.AuditConfig.CHECK_TABLE_PRIMARY_KEY {
 		if len(v.PrimaryKeys) == 0 {
 			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`必须定义主键", v.Table))
 		}
@@ -78,14 +78,15 @@ func LogicCreateTablePrimaryKey(v *TraverseCreateTablePrimaryKey, r *Rule) {
 	// 检查主键是否为bigint类型
 	for _, item := range v.PrimaryKeys {
 		var p process.PrimaryKey = item
+		p.AuditConfig = r.AuditConfig
 		fns := []func() error{
 			p.CheckBigint,
 			p.CheckUnsigned,
 			p.CheckAutoIncrement,
 			p.CheckNotNull,
 		}
-		for _, fns := range fns {
-			if err := fns(); err != nil {
+		for _, fn := range fns {
+			if err := fn(); err != nil {
 				r.Summary = append(r.Summary, err.Error())
 			}
 		}
@@ -94,7 +95,7 @@ func LogicCreateTablePrimaryKey(v *TraverseCreateTablePrimaryKey, r *Rule) {
 
 // LogicCreateTableForeignKey
 func LogicCreateTableForeignKey(v *TraverseCreateTableForeignKey, r *Rule) {
-	if !global.App.AuditConfig.ENABLE_FOREIGN_KEY && v.IsForeignKey {
+	if !r.AuditConfig.ENABLE_FOREIGN_KEY && v.IsForeignKey {
 		// 禁止使用外键
 		r.Summary = append(r.Summary, fmt.Sprintf("表`%s`禁止定义外键", v.Table))
 	}
@@ -102,7 +103,7 @@ func LogicCreateTableForeignKey(v *TraverseCreateTableForeignKey, r *Rule) {
 
 // LogicCreateTableAuditCols
 func LogicCreateTableAuditCols(v *TraverseCreateTableAuditCols, r *Rule) {
-	if global.App.AuditConfig.CHECK_TABLE_AUDIT_TYPE_COLUMNS {
+	if r.AuditConfig.CHECK_TABLE_AUDIT_TYPE_COLUMNS {
 		// 启用审计类型的字段, 必须定义2个审计字段, 字段名和注释名不做要求, 如:
 		// `UPDATED_AT` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 		// `CREATED_AT` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
@@ -124,6 +125,7 @@ func LogicCreateTableAuditCols(v *TraverseCreateTableAuditCols, r *Rule) {
 // LogicCreateTableColsOptions
 func LogicCreateTableColsOptions(v *TraverseCreateTableColsOptions, r *Rule) {
 	for _, col := range v.Cols {
+		col.AuditConfig = r.AuditConfig
 		fns := []func() error{
 			col.CheckColumnLength,
 			col.CheckColumnIdentifer,
@@ -136,8 +138,8 @@ func LogicCreateTableColsOptions(v *TraverseCreateTableColsOptions, r *Rule) {
 			col.CheckColumnNotNull,
 			col.CheckColumnDefaultValue,
 		}
-		for _, fns := range fns {
-			if err := fns(); err != nil {
+		for _, fn := range fns {
+			if err := fn(); err != nil {
 				r.Summary = append(r.Summary, err.Error())
 			}
 		}
@@ -155,7 +157,7 @@ func LogicCreateTableColsRepeatDefine(v *TraverseCreateTableColsRepeatDefine, r 
 // LogicCreateTableColsCharset
 func LogicCreateTableColsCharset(v *TraverseCreateTableColsCharset, r *Rule) {
 	// 列字符集检查
-	if global.App.AuditConfig.CHECK_COLUMN_CHARSET {
+	if r.AuditConfig.CHECK_COLUMN_CHARSET {
 		if len(v.Cols) > 0 {
 			if err := v.CheckColumn(); err != nil {
 				r.Summary = append(r.Summary, err.Error())
@@ -168,19 +170,20 @@ func LogicCreateTableColsCharset(v *TraverseCreateTableColsCharset, r *Rule) {
 func LogicCreateTableIndexesPrefix(v *TraverseCreateTableIndexesPrefix, r *Rule) {
 	// 检查唯一索引前缀、如唯一索引必须以uniq_为前缀
 	var indexPrefixCheck process.IndexPrefix = v.Prefix
-	if global.App.AuditConfig.CHECK_UNIQ_INDEX_PREFIX {
+	indexPrefixCheck.AuditConfig = r.AuditConfig
+	if r.AuditConfig.CHECK_UNIQ_INDEX_PREFIX {
 		if err := indexPrefixCheck.CheckUniquePrefix(); err != nil {
 			r.Summary = append(r.Summary, err.Error())
 		}
 	}
 	// 检查二级索引前缀、如二级索引必须以idx_为前缀
-	if global.App.AuditConfig.CHECK_SECONDARY_INDEX_PREFIX {
+	if r.AuditConfig.CHECK_SECONDARY_INDEX_PREFIX {
 		if err := indexPrefixCheck.CheckSecondaryPrefix(); err != nil {
 			r.Summary = append(r.Summary, err.Error())
 		}
 	}
 	// 检查全文索引前缀、如全文索引必须以full_为前缀
-	if global.App.AuditConfig.CHECK_FULLTEXT_INDEX_PREFIX {
+	if r.AuditConfig.CHECK_FULLTEXT_INDEX_PREFIX {
 		if err := indexPrefixCheck.CheckFulltextPrefix(); err != nil {
 			r.Summary = append(r.Summary, err.Error())
 		}
@@ -191,6 +194,7 @@ func LogicCreateTableIndexesPrefix(v *TraverseCreateTableIndexesPrefix, r *Rule)
 func LogicCreateTableIndexesCount(v *TraverseCreateTableIndexesCount, r *Rule) {
 	// 检查二级索引数量
 	var indexNumberCheck process.IndexNumber = v.Number
+	indexNumberCheck.AuditConfig = r.AuditConfig
 	if err := indexNumberCheck.CheckSecondaryIndexesNum(); err != nil {
 		r.Summary = append(r.Summary, err.Error())
 	}

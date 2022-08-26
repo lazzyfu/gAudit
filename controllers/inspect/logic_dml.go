@@ -11,7 +11,6 @@ import (
 	"sqlSyntaxAudit/common/utils"
 	"sqlSyntaxAudit/config"
 	"sqlSyntaxAudit/controllers/process"
-	"sqlSyntaxAudit/global"
 )
 
 // LogicDMLInsertIntoSelect
@@ -19,11 +18,11 @@ func LogicDMLInsertIntoSelect(v *TraverseDMLInsertIntoSelect, r *Rule) {
 	if v.IsMatch == 0 {
 		return
 	}
-	if global.App.AuditConfig.DISABLE_INSERT_INTO_SELECT && v.HasSelectSubQuery {
+	if r.AuditConfig.DISABLE_INSERT_INTO_SELECT && v.HasSelectSubQuery {
 		r.Summary = append(r.Summary, fmt.Sprintf("禁止使用%s into select语法", v.DMLType))
 		r.IsSkipNextStep = true
 	}
-	if global.App.AuditConfig.DISABLE_ON_DUPLICATE && v.HasOnDuplicate {
+	if r.AuditConfig.DISABLE_ON_DUPLICATE && v.HasOnDuplicate {
 		r.Summary = append(r.Summary, fmt.Sprintf("禁止使用%s into on duplicate语法", v.DMLType))
 		r.IsSkipNextStep = true
 	}
@@ -34,7 +33,7 @@ func LogicDMLNoWhere(v *TraverseDMLNoWhere, r *Rule) {
 	if v.IsMatch == 0 {
 		return
 	}
-	if !v.HasWhere && global.App.AuditConfig.DML_MUST_HAVE_WHERE {
+	if !v.HasWhere && r.AuditConfig.DML_MUST_HAVE_WHERE {
 		r.Summary = append(r.Summary, fmt.Sprintf("%s语句必须要有where条件", v.DMLType))
 		r.IsSkipNextStep = true
 	}
@@ -45,7 +44,7 @@ func LogicDMLInsertWithColumns(v *TraverseDMLInsertWithColumns, r *Rule) {
 	if v.IsMatch == 0 {
 		return
 	}
-	if v.DMLType == "REPLACE" && global.App.AuditConfig.DISABLE_REPLACE {
+	if v.DMLType == "REPLACE" && r.AuditConfig.DISABLE_REPLACE {
 		r.Summary = append(r.Summary, fmt.Sprintf("不允许使用%s语句", v.DMLType))
 		r.IsSkipNextStep = true
 		return
@@ -79,8 +78,8 @@ func LogicDMLInsertWithColumns(v *TraverseDMLInsertWithColumns, r *Rule) {
 	} else if !v.ColsValuesIsMatch {
 		r.Summary = append(r.Summary, fmt.Sprintf("%s语句指定的列数量和值的数量不匹配", v.DMLType))
 	}
-	if v.RowsCount > global.App.AuditConfig.MAX_INSERT_ROWS {
-		r.Summary = append(r.Summary, fmt.Sprintf("%s语句单次最多允许的行数为%d,当前行数为%d【建议拆分为多条%s语句】", v.DMLType, global.App.AuditConfig.MAX_INSERT_ROWS, v.RowsCount, v.DMLType))
+	if v.RowsCount > r.AuditConfig.MAX_INSERT_ROWS {
+		r.Summary = append(r.Summary, fmt.Sprintf("%s语句单次最多允许的行数为%d,当前行数为%d【建议拆分为多条%s语句】", v.DMLType, r.AuditConfig.MAX_INSERT_ROWS, v.RowsCount, v.DMLType))
 	}
 }
 
@@ -89,15 +88,15 @@ func LogicDMLHasConstraint(v *TraverseDMLHasConstraint, r *Rule) {
 	if v.IsMatch == 0 {
 		return
 	}
-	if v.HasLimit && global.App.AuditConfig.DML_DISABLE_LIMIT {
+	if v.HasLimit && r.AuditConfig.DML_DISABLE_LIMIT {
 		r.Summary = append(r.Summary, fmt.Sprintf("%s语句不能有LIMIT子句", v.DMLType))
 		r.IsSkipNextStep = true
 	}
-	if v.HasOrderBy && global.App.AuditConfig.DML_DISABLE_ORDERBY {
+	if v.HasOrderBy && r.AuditConfig.DML_DISABLE_ORDERBY {
 		r.Summary = append(r.Summary, fmt.Sprintf("%s语句不能有ORDER BY子句", v.DMLType))
 		r.IsSkipNextStep = true
 	}
-	if v.HasSubQuery && global.App.AuditConfig.DML_DISABLE_SUBQUERY {
+	if v.HasSubQuery && r.AuditConfig.DML_DISABLE_SUBQUERY {
 		r.Summary = append(r.Summary, fmt.Sprintf("%s语句不能有子查询", v.DMLType))
 		r.IsSkipNextStep = true
 	}
@@ -108,7 +107,7 @@ func LogicDMLJoinWithOn(v *TraverseDMLJoinWithOn, r *Rule) {
 	if v.IsMatch == 0 {
 		return
 	}
-	if v.HasJoin && global.App.AuditConfig.CHECK_DML_JOIN_WITH_ON && !v.IsJoinWithOn {
+	if v.HasJoin && r.AuditConfig.CHECK_DML_JOIN_WITH_ON && !v.IsJoinWithOn {
 		r.Summary = append(r.Summary, fmt.Sprintf("%s语句的JOIN操作必须要有ON条件", v.DMLType))
 		r.IsSkipNextStep = true
 	}
@@ -120,16 +119,16 @@ func LogicDMLMaxUpdateRows(v *TraverseDMLMaxUpdateRows, r *Rule) {
 		return
 	}
 	explain := process.Explain{DB: r.DB, SQL: r.Query, KV: r.KV}
-	affectedRows, err := explain.Get()
+	affectedRows, err := explain.Get(r.AuditConfig.EXPLAIN_RULE)
 	if err != nil {
 		r.AffectedRows = 0
 		r.Summary = append(r.Summary, err.Error())
 		r.IsSkipNextStep = true
 		return
 	}
-	if affectedRows > global.App.AuditConfig.MAX_AFFECTED_ROWS {
+	if affectedRows > r.AuditConfig.MAX_AFFECTED_ROWS {
 		r.AffectedRows = affectedRows
-		r.Summary = append(r.Summary, fmt.Sprintf("当前%s语句最大影响或扫描行数超过了最大允许值%d【建议:您可以将语句拆分为多条,保证每条语句影响或扫描行数小于最大允许值%d】", v.DMLType, global.App.AuditConfig.MAX_AFFECTED_ROWS, global.App.AuditConfig.MAX_AFFECTED_ROWS))
+		r.Summary = append(r.Summary, fmt.Sprintf("当前%s语句最大影响或扫描行数超过了最大允许值%d【建议:您可以将语句拆分为多条,保证每条语句影响或扫描行数小于最大允许值%d】", v.DMLType, r.AuditConfig.MAX_AFFECTED_ROWS, r.AuditConfig.MAX_AFFECTED_ROWS))
 		r.IsSkipNextStep = true
 		return
 	}

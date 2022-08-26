@@ -28,14 +28,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Checker struct {
-	Form      forms.SyntaxAudit
-	Charset   string
-	Collation string
-	Audit     *config.Audit
-	DB        *utils.DB
-}
-
+// 返回数据
 type ReturnData struct {
 	Summary      []string `json:"summary"` // 规则摘要
 	Level        string   `json:"level"`   // 提醒级别,INFO/WARN/ERROR
@@ -44,7 +37,16 @@ type ReturnData struct {
 	FingerId     string   `json:"finger_id"`
 	Query        string   `json:"query"` // 原始SQL
 }
+type Checker struct {
+	Form        forms.SyntaxAudit
+	Charset     string
+	Collation   string
+	Audit       *config.Audit
+	DB          *utils.DB
+	AuditConfig config.AuditConfiguration
+}
 
+// 初始化DB
 func (c *Checker) InitDB() {
 	c.DB = &utils.DB{
 		User:     c.Form.DbUser,
@@ -56,8 +58,11 @@ func (c *Checker) InitDB() {
 	}
 }
 
+// 动态传参，当前请求传参可覆盖默认配置，仅对当前请求生效
 func (c *Checker) CustomParams() error {
-	// 动态传参，当前请求传参可覆盖默认配置，仅对当前请求生效
+	// 赋值给新变量
+	c.AuditConfig = *global.App.AuditConfig
+	// 判断传入是否为空
 	if len(c.Form.CustomAuditParams) == 0 {
 		return nil
 	}
@@ -67,14 +72,13 @@ func (c *Checker) CustomParams() error {
 		"LogFilePath",
 		"LogLevel",
 	}
-
 	// 验证传递的key是否在内置的参数内
 	for key := range c.Form.CustomAuditParams {
 		if utils.IsContain(unAllowedCustomAuditParams, key) {
 			return fmt.Errorf("`custom_audit_parameters`不允许传递参数`%s`", key)
 		}
 		upperKey := strings.ToUpper(key) // 转换为大写
-		rto := reflect.TypeOf(*global.App.AuditConfig)
+		rto := reflect.TypeOf(c.AuditConfig)
 		if _, ok := rto.FieldByName(upperKey); !ok {
 			return fmt.Errorf("`custom_audit_parameters`传递的参数`%s`不存在", key)
 		}
@@ -87,37 +91,36 @@ func (c *Checker) CustomParams() error {
 
 	// 动态参数赋值给默认模板
 	// 优先级: post custom_audit_parameters > 自定义参数 > 内置默认参数
-	if err := decoder.Decode(global.App.AuditConfig); err != nil {
+	if err := decoder.Decode(&c.AuditConfig); err != nil {
 		return err
 	}
-	return nil
-}
 
-func (c *Checker) CleanupAuditParams() {
-	if global.App.AuditConfig.MAX_TABLE_NAME_LENGTH > 64 {
-		global.App.AuditConfig.MAX_TABLE_NAME_LENGTH = 64
-	}
-	if global.App.AuditConfig.TABLE_COMMENT_LENGTH > 512 {
-		global.App.AuditConfig.TABLE_COMMENT_LENGTH = 512
-	}
-	if global.App.AuditConfig.MAX_COLUMN_NAME_LENGTH > 64 {
-		global.App.AuditConfig.MAX_COLUMN_NAME_LENGTH = 64
-	}
-	if global.App.AuditConfig.MAX_VARCHAR_LENGTH > 65535 {
-		global.App.AuditConfig.MAX_COLUMN_NAME_LENGTH = 65535
-	}
+	// 拦截异常传参
+	func() {
+		if c.AuditConfig.MAX_TABLE_NAME_LENGTH > 64 {
+			c.AuditConfig.MAX_TABLE_NAME_LENGTH = 64
+		}
+		if c.AuditConfig.TABLE_COMMENT_LENGTH > 512 {
+			c.AuditConfig.TABLE_COMMENT_LENGTH = 512
+		}
+		if c.AuditConfig.MAX_COLUMN_NAME_LENGTH > 64 {
+			c.AuditConfig.MAX_COLUMN_NAME_LENGTH = 64
+		}
+		if c.AuditConfig.MAX_VARCHAR_LENGTH > 65535 {
+			c.AuditConfig.MAX_COLUMN_NAME_LENGTH = 65535
+		}
+	}()
+	return nil
 }
 
 func (c *Checker) Parse() error {
 	// 解析SQL
 	var warns []error
 	var err error
-	// 处理自定义传参
+	// 处理审核参数
 	if err := c.CustomParams(); err != nil {
 		return err
 	}
-	// 审核参数清洗
-	c.CleanupAuditParams()
 	// 解析
 	c.Audit, warns, err = NewParse(c.Form.SqlText, c.Charset, c.Collation)
 	if len(warns) > 0 {
@@ -135,6 +138,7 @@ func (c *Checker) CreateViewStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId str
 	for _, rule := range CreateViewRules() {
 		rule.DB = c.DB
 		rule.KV = kv
+		rule.AuditConfig = &c.AuditConfig
 		rule.CheckFunc(&rule, &stmt)
 		if len(rule.Summary) > 0 {
 			// 检查不通过
@@ -155,6 +159,7 @@ func (c *Checker) CreateTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId st
 	for _, rule := range CreateTableRules() {
 		rule.DB = c.DB
 		rule.KV = kv
+		rule.AuditConfig = &c.AuditConfig
 		rule.CheckFunc(&rule, &stmt)
 		if len(rule.Summary) > 0 {
 			// 检查不通过
@@ -176,6 +181,7 @@ func (c *Checker) AlterTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId str
 	for _, rule := range AlterTableRules() {
 		rule.DB = c.DB
 		rule.KV = kv
+		rule.AuditConfig = &c.AuditConfig
 		rule.CheckFunc(&rule, &stmt)
 		if len(rule.MergeAlter) > 0 && len(mergeAlter) == 0 {
 			mergeAlter = rule.MergeAlter
@@ -199,6 +205,7 @@ func (c *Checker) RenameTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId st
 	for _, rule := range RenameTableRules() {
 		rule.DB = c.DB
 		rule.KV = kv
+		rule.AuditConfig = &c.AuditConfig
 		rule.CheckFunc(&rule, &stmt)
 		if len(rule.Summary) > 0 {
 			// 检查不通过
@@ -219,6 +226,7 @@ func (c *Checker) DropTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId stri
 	for _, rule := range DropTableRules() {
 		rule.DB = c.DB
 		rule.KV = kv
+		rule.AuditConfig = &c.AuditConfig
 		rule.CheckFunc(&rule, &stmt)
 		if len(rule.Summary) > 0 {
 			// 检查不通过
@@ -250,6 +258,7 @@ func (c *Checker) DMLStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) Re
 	for _, rule := range DMLRules() {
 		rule.DB = c.DB
 		rule.KV = kv
+		rule.AuditConfig = &c.AuditConfig
 		rule.Query = stmt.Text()
 		rule.CheckFunc(&rule, &stmt)
 		data.AffectedRows = rule.AffectedRows
@@ -270,14 +279,14 @@ func (c *Checker) MergeAlter(kv *kv.KVCache, mergeAlters []string) ReturnData {
 	// 检查merge操作
 	var data ReturnData = ReturnData{Level: "INFO"}
 	dbVersionIns := process.DbVersion{Version: kv.Get("dbVersion").(string)}
-	if global.App.AuditConfig.ENABLE_MYSQL_MERGE_ALTER_TABLE && !dbVersionIns.IsTiDB() {
+	if c.AuditConfig.ENABLE_MYSQL_MERGE_ALTER_TABLE && !dbVersionIns.IsTiDB() {
 		if ok, val := utils.IsRepeat(mergeAlters); ok {
 			for _, v := range val {
 				data.Summary = append(data.Summary, fmt.Sprintf("[MySQL数据库]表`%s`的多条ALTER操作,请合并为一条ALTER语句", v))
 			}
 		}
 	}
-	if !global.App.AuditConfig.ENABLE_TIDB_MERGE_ALTER_TABLE && dbVersionIns.IsTiDB() {
+	if !c.AuditConfig.ENABLE_TIDB_MERGE_ALTER_TABLE && dbVersionIns.IsTiDB() {
 		if ok, val := utils.IsRepeat(mergeAlters); ok {
 			for _, v := range val {
 				data.Summary = append(data.Summary, fmt.Sprintf("[TiDB数据库]表`%s`的多条ALTER操作,请拆分为多条ALTER语句", v))

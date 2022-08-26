@@ -8,6 +8,7 @@ package inspect
 import (
 	"sqlSyntaxAudit/common/kv"
 	"sqlSyntaxAudit/common/utils"
+	"sqlSyntaxAudit/config"
 
 	"github.com/pingcap/parser/ast"
 )
@@ -21,6 +22,7 @@ type Rule struct {
 	KV             *kv.KVCache
 	Query          string // 原始SQL
 	MergeAlter     string
+	AuditConfig    *config.AuditConfiguration
 
 	CheckFunc func(*Rule, *ast.StmtNode) // 函数名
 }

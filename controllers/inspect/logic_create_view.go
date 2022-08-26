@@ -8,12 +8,11 @@ package inspect
 
 import (
 	"fmt"
-	"sqlSyntaxAudit/global"
 )
 
 // LogicCreateViewIsExist
 func LogicCreateViewIsExist(v *TraverseCreateViewIsExist, r *Rule) {
-	if !global.App.AuditConfig.ENABLE_CREATE_VIEW {
+	if !r.AuditConfig.ENABLE_CREATE_VIEW {
 		r.Summary = append(r.Summary, fmt.Sprintf("不允许创建视图`%s`", v.View))
 		r.IsSkipNextStep = true
 		return

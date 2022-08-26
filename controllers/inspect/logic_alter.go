@@ -11,7 +11,6 @@ import (
 	"sqlSyntaxAudit/common/utils"
 	"sqlSyntaxAudit/config"
 	"sqlSyntaxAudit/controllers/process"
-	"sqlSyntaxAudit/global"
 	"strings"
 )
 
@@ -46,7 +45,7 @@ func LogicAlterTableDropColsOrIndexes(v *TraverseAlterTableDropColsOrIndexes, r 
 	}
 
 	if len(v.Cols) > 0 {
-		if !global.App.AuditConfig.ENABLE_DROP_COLS {
+		if !r.AuditConfig.ENABLE_DROP_COLS {
 			// 不允许drop列
 			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`不允许DROP列", v.Table))
 		} else {
@@ -57,7 +56,7 @@ func LogicAlterTableDropColsOrIndexes(v *TraverseAlterTableDropColsOrIndexes, r 
 				}
 			}
 		}
-		if !global.App.AuditConfig.ENABLE_DROP_PRIMARYKEY {
+		if !r.AuditConfig.ENABLE_DROP_PRIMARYKEY {
 			// 不允许drop主键
 			for _, pri := range vAduit.PrimaryKeys {
 				if utils.IsContain(v.Cols, pri) {
@@ -67,7 +66,7 @@ func LogicAlterTableDropColsOrIndexes(v *TraverseAlterTableDropColsOrIndexes, r 
 		}
 	}
 	if len(vAduit.Indexes) > 0 {
-		if !global.App.AuditConfig.ENABLE_DROP_INDEXES {
+		if !r.AuditConfig.ENABLE_DROP_INDEXES {
 			// 不允许drop索引
 			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`不允许DROP索引", v.Table))
 		} else {
@@ -88,9 +87,10 @@ func LogicAlterTableOptions(v *TraverseAlterTableOptions, r *Rule) {
 	}
 	r.MergeAlter = v.Table
 	v.Type = "alter"
+	v.TableOptions.AuditConfig = r.AuditConfig
 	fns := []func() error{v.CheckTableEngine, v.CheckTableComment, v.CheckTableCharset}
-	for _, fns := range fns {
-		if err := fns(); err != nil {
+	for _, fn := range fns {
+		if err := fn(); err != nil {
 			r.Summary = append(r.Summary, err.Error())
 		}
 	}
@@ -104,7 +104,7 @@ func LogicAlterTableColCharset(v *TraverseAlterTableColCharset, r *Rule) {
 	r.MergeAlter = v.Table
 
 	// 列字符集检查
-	if global.App.AuditConfig.CHECK_COLUMN_CHARSET {
+	if r.AuditConfig.CHECK_COLUMN_CHARSET {
 		if len(v.Cols) > 0 {
 			if err := v.CheckColumn(); err != nil {
 				r.Summary = append(r.Summary, err.Error())
@@ -121,6 +121,7 @@ func LogicAlterTableAddColOptions(v *TraverseAlterTableAddColOptions, r *Rule) {
 	r.MergeAlter = v.Table
 
 	for _, col := range v.Cols {
+		col.AuditConfig = r.AuditConfig
 		fns := []func() error{
 			col.CheckColumnLength,
 			col.CheckColumnIdentifer,
@@ -133,8 +134,8 @@ func LogicAlterTableAddColOptions(v *TraverseAlterTableAddColOptions, r *Rule) {
 			col.CheckColumnNotNull,
 			col.CheckColumnDefaultValue,
 		}
-		for _, fns := range fns {
-			if err := fns(); err != nil {
+		for _, fn := range fns {
+			if err := fn(); err != nil {
 				r.Summary = append(r.Summary, err.Error())
 			}
 		}
@@ -206,19 +207,20 @@ func LogicAlterTableAddIndexPrefix(v *TraverseAlterTableAddIndexPrefix, r *Rule)
 
 	// 检查唯一索引前缀、如唯一索引必须以uniq_为前缀
 	var indexPrefixCheck process.IndexPrefix = v.Prefix
-	if global.App.AuditConfig.CHECK_UNIQ_INDEX_PREFIX {
+	indexPrefixCheck.AuditConfig = r.AuditConfig
+	if r.AuditConfig.CHECK_UNIQ_INDEX_PREFIX {
 		if err := indexPrefixCheck.CheckUniquePrefix(); err != nil {
 			r.Summary = append(r.Summary, err.Error())
 		}
 	}
 	// 检查二级索引前缀、如二级索引必须以idx_为前缀
-	if global.App.AuditConfig.CHECK_SECONDARY_INDEX_PREFIX {
+	if r.AuditConfig.CHECK_SECONDARY_INDEX_PREFIX {
 		if err := indexPrefixCheck.CheckSecondaryPrefix(); err != nil {
 			r.Summary = append(r.Summary, err.Error())
 		}
 	}
 	// 检查全文索引前缀、如全文索引必须以full_为前缀
-	if global.App.AuditConfig.CHECK_FULLTEXT_INDEX_PREFIX {
+	if r.AuditConfig.CHECK_FULLTEXT_INDEX_PREFIX {
 		if err := indexPrefixCheck.CheckFulltextPrefix(); err != nil {
 			r.Summary = append(r.Summary, err.Error())
 		}
@@ -247,6 +249,7 @@ func LogicAlterTableAddIndexCount(v *TraverseAlterTableAddIndexCount, r *Rule) {
 	v.Number.Number += vAduit.Number.Number
 	// 检查二级索引数量
 	var indexNumberCheck process.IndexNumber = v.Number
+	indexNumberCheck.AuditConfig = r.AuditConfig
 	if err := indexNumberCheck.CheckSecondaryIndexesNum(); err != nil {
 		r.Summary = append(r.Summary, err.Error())
 	}
@@ -375,7 +378,7 @@ func LogicAlterTableModifyColOptions(v *TraverseAlterTableModifyColOptions, r *R
 		}
 	}
 	// 检查modify的列是否进行列类型变更
-	if !global.App.AuditConfig.ENABLE_COLUMN_TYPE_CHANGE {
+	if !r.AuditConfig.ENABLE_COLUMN_TYPE_CHANGE {
 		// 不允许列类型变更
 		for _, col := range v.Cols {
 			for _, vCol := range vAduit.Cols {
@@ -412,7 +415,7 @@ func LogicAlterTableChangeColOptions(v *TraverseAlterTableChangeColOptions, r *R
 	}
 	r.MergeAlter = v.Table
 
-	if !global.App.AuditConfig.ENABLE_COLUMN_CHANGE && len(v.Cols) > 0 {
+	if !r.AuditConfig.ENABLE_COLUMN_CHANGE && len(v.Cols) > 0 {
 		r.Summary = append(r.Summary, fmt.Sprintf("禁止CHANGE操作[表`%s`]", v.Table))
 		return
 	}
@@ -442,7 +445,7 @@ func LogicAlterTableChangeColOptions(v *TraverseAlterTableChangeColOptions, r *R
 		}
 	}
 	// 检查change的列是否进行列类型变更
-	if !global.App.AuditConfig.ENABLE_COLUMN_TYPE_CHANGE {
+	if !r.AuditConfig.ENABLE_COLUMN_TYPE_CHANGE {
 		// 不允许列类型变更
 		for _, col := range v.Cols {
 			for _, vCol := range vAduit.Cols {
@@ -480,7 +483,7 @@ func LogicAlterTableRenameIndex(v *TraverseAlterTableRenameIndex, r *Rule) {
 	}
 	r.MergeAlter = v.Table
 
-	if !global.App.AuditConfig.ENABLE_INDEX_RENAME {
+	if !r.AuditConfig.ENABLE_INDEX_RENAME {
 		r.Summary = append(r.Summary, fmt.Sprintf("不允许RENAME INDEX操作[表`%s`]", v.Table))
 		return
 	}
@@ -522,7 +525,7 @@ func LogicAlterTableRenameIndex(v *TraverseAlterTableRenameIndex, r *Rule) {
 			r.Summary = append(r.Summary, fmt.Sprintf("新的索引`%s`已存在[表`%s`]", item.NewIndex, v.Table))
 		}
 		// 检查索引名合法性
-		if global.App.AuditConfig.CHECK_IDENTIFIER {
+		if r.AuditConfig.CHECK_IDENTIFIER {
 			if ok := utils.IsMatchPattern(utils.NamePattern, item.NewIndex); !ok {
 				r.Summary = append(r.Summary, fmt.Sprintf("索引`%s`命名不符合要求[表`%s`]", item.NewIndex, v.Table))
 			}
@@ -536,7 +539,7 @@ func LogicAlterTableRenameTblName(v *TraverseAlterTableRenameTblName, r *Rule) {
 		return
 	}
 	r.MergeAlter = v.Table
-	if !global.App.AuditConfig.ENABLE_RENAME_TABLE_NAME {
+	if !r.AuditConfig.ENABLE_RENAME_TABLE_NAME {
 		r.Summary = append(r.Summary, fmt.Sprintf("不允许RENAME表名[表`%s`]", v.Table))
 		return
 	}
