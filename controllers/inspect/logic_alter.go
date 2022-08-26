@@ -392,6 +392,7 @@ func LogicAlterTableModifyColOptions(v *TraverseAlterTableModifyColOptions, r *R
 	}
 	// 检查列
 	for _, col := range v.Cols {
+		col.AuditConfig = r.AuditConfig
 		fns := []func() error{
 			col.CheckColumnComment,
 			col.CheckColumnCharToVarchar,
@@ -400,8 +401,8 @@ func LogicAlterTableModifyColOptions(v *TraverseAlterTableModifyColOptions, r *R
 			col.CheckColumnNotNull,
 			col.CheckColumnDefaultValue,
 		}
-		for _, fns := range fns {
-			if err := fns(); err != nil {
+		for _, fn := range fns {
+			if err := fn(); err != nil {
 				r.Summary = append(r.Summary, err.Error())
 			}
 		}
@@ -459,6 +460,7 @@ func LogicAlterTableChangeColOptions(v *TraverseAlterTableChangeColOptions, r *R
 	}
 	// 检查列
 	for _, col := range v.Cols {
+		col.AuditConfig = r.AuditConfig
 		fns := []func() error{
 			col.CheckColumnComment,
 			col.CheckColumnCharToVarchar,
