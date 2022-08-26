@@ -5,5 +5,4 @@ logs
 tmp
 tests/logs
 github.gAudit.code-workspace
-bin/gAudit
-bin/*.tar.gz
+bin/
