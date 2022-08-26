@@ -470,8 +470,8 @@ func LogicAlterTableChangeColOptions(v *TraverseAlterTableChangeColOptions, r *R
 			col.CheckColumnNotNull,
 			col.CheckColumnDefaultValue,
 		}
-		for _, fns := range fns {
-			if err := fns(); err != nil {
+		for _, fn := range fns {
+			if err := fn(); err != nil {
 				r.Summary = append(r.Summary, err.Error())
 			}
 		}
