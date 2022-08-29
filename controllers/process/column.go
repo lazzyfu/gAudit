@@ -44,7 +44,7 @@ func (c *ColOptions) CheckColumnLength() error {
 func (c *ColOptions) CheckColumnIdentifer() error {
 	if c.AuditConfig.CHECK_IDENTIFIER {
 		if ok := utils.IsMatchPattern(utils.NamePattern, c.Column); !ok {
-			return fmt.Errorf("列`%s`命名不符合要求[表`%s`]", c.Column, c.Table)
+			return fmt.Errorf("列`%s`命名不符合要求,仅允许匹配正则`%s`[表`%s`]", c.Column, utils.NamePattern, c.Table)
 		}
 	}
 	return nil

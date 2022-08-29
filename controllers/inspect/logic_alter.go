@@ -529,7 +529,7 @@ func LogicAlterTableRenameIndex(v *TraverseAlterTableRenameIndex, r *Rule) {
 		// 检查索引名合法性
 		if r.AuditConfig.CHECK_IDENTIFIER {
 			if ok := utils.IsMatchPattern(utils.NamePattern, item.NewIndex); !ok {
-				r.Summary = append(r.Summary, fmt.Sprintf("索引`%s`命名不符合要求[表`%s`]", item.NewIndex, v.Table))
+				r.Summary = append(r.Summary, fmt.Sprintf("索引`%s`命名不符合要求,仅允许匹配正则`%s`[表`%s`]", item.NewIndex, utils.NamePattern, v.Table))
 			}
 		}
 	}

@@ -13,7 +13,7 @@ import (
 )
 
 // 允许的命名
-var NamePattern = "[a-zA-Z_][a-zA-Z0-9_]*"
+var NamePattern = "[A-Za-z0-9_]"
 
 // IsContain 等值比较，忽略大小写
 func IsContain(items []string, item string) bool {

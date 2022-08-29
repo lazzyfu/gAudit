@@ -40,7 +40,7 @@ func (t *TableOptions) CheckTableLength() error {
 func (t *TableOptions) CheckTableIdentifer() error {
 	if t.AuditConfig.CHECK_IDENTIFIER {
 		if ok := utils.IsMatchPattern(utils.NamePattern, t.Table); !ok {
-			return fmt.Errorf("表`%s`的命名不符合要求,可选组合[a-zA-Z0-9_]", t.Table)
+			return fmt.Errorf("表`%s`的命名不符合要求,仅允许匹配正则`%s`", t.Table, utils.NamePattern)
 		}
 	}
 	return nil
