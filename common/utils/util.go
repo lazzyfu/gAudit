@@ -13,7 +13,7 @@ import (
 )
 
 // 允许的命名
-var NamePattern = "[A-Za-z0-9_]"
+var NamePattern = "[a-zA-Z][a-zA-Z0-9_]*"
 
 // IsContain 等值比较，忽略大小写
 func IsContain(items []string, item string) bool {
@@ -88,7 +88,6 @@ func ErrsJoin(str string, err []error) string {
 func IsMatchPattern(pattern string, str string) bool {
 	regCom := regexp.MustCompile(pattern)
 	indices := regCom.FindAllStringIndex(str, -1)
-
 	for _, indice := range indices {
 		start, end := indice[0], indice[1]
 		if unicode.IsDigit(rune(str[0])) {
@@ -96,7 +95,7 @@ func IsMatchPattern(pattern string, str string) bool {
 			return false
 		} else {
 			// 发现异常的字符
-			if start != 0 && end != (len(str)-1) {
+			if start != 0 || end != len(str) {
 				return false
 			}
 		}
