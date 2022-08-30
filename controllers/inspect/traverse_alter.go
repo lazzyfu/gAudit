@@ -29,6 +29,24 @@ func (c *TraverseAlterTableIsExist) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
 
+// TraverseAlterTiDBMerge
+type TraverseAlterTiDBMerge struct {
+	Table    string // 表名
+	SpecsLen int    // 语句长度
+}
+
+func (c *TraverseAlterTiDBMerge) Enter(in ast.Node) (ast.Node, bool) {
+	if stmt, ok := in.(*ast.AlterTableStmt); ok {
+		c.Table = stmt.Table.Name.String()
+		c.SpecsLen = len(stmt.Specs)
+	}
+	return in, false
+}
+
+func (c *TraverseAlterTiDBMerge) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}
+
 // TraverseAlterTableDropCols
 type TraverseAlterTableDropColsOrIndexes struct {
 	Table   string   // 表名

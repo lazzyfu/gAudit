@@ -24,6 +24,17 @@ func LogicAlterTableIsExist(v *TraverseAlterTableIsExist, r *Rule) {
 	}
 }
 
+// LogicAlterTableTiDBMerge
+func LogicAlterTableTiDBMerge(v *TraverseAlterTiDBMerge, r *Rule) {
+	// 检查TiDBMergeAlter
+	dbVersionIns := process.DbVersion{Version: r.KV.Get("dbVersion").(string)}
+	if !r.AuditConfig.ENABLE_TIDB_MERGE_ALTER_TABLE && dbVersionIns.IsTiDB() {
+		if v.SpecsLen > 1 {
+			r.Summary = append(r.Summary, fmt.Sprintf("[TiDB数据库]表`%s`的多条ALTER操作,请拆分为多条ALTER语句", v.Table))
+		}
+	}
+}
+
 // LogicAlterTableDropColsOrIndexes
 func LogicAlterTableDropColsOrIndexes(v *TraverseAlterTableDropColsOrIndexes, r *Rule) {
 	if v.IsMatch == 0 {

@@ -17,6 +17,10 @@ func AlterTableRules() []Rule {
 			CheckFunc: (*Rule).RuleAlterTableIsExist,
 		},
 		{
+			Hint:      "AlterTable#检查TiDBMergeAlter",
+			CheckFunc: (*Rule).RuleAlterTiDBMerge,
+		},
+		{
 			Hint:      "AlterTable#DROP列和索引检查",
 			CheckFunc: (*Rule).RuleAlterTableDropColsOrIndexes,
 		},
@@ -85,6 +89,14 @@ func (r *Rule) RuleAlterTableIsExist(tistmt *ast.StmtNode) {
 	(*tistmt).Accept(v)
 	LogicAlterTableIsExist(v, r)
 }
+
+// RuleAlterTiDBMerge
+func (r *Rule) RuleAlterTiDBMerge(tistmt *ast.StmtNode) {
+	v := &TraverseAlterTiDBMerge{}
+	(*tistmt).Accept(v)
+	LogicAlterTableTiDBMerge(v, r)
+}
+
 
 // RuleAlterTableDropCols
 func (r *Rule) RuleAlterTableDropColsOrIndexes(tistmt *ast.StmtNode) {

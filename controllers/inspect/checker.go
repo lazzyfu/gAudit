@@ -276,20 +276,13 @@ func (c *Checker) DMLStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) Re
 }
 
 func (c *Checker) MergeAlter(kv *kv.KVCache, mergeAlters []string) ReturnData {
-	// 检查merge操作
+	// 检查mysql merge操作
 	var data ReturnData = ReturnData{Level: "INFO"}
 	dbVersionIns := process.DbVersion{Version: kv.Get("dbVersion").(string)}
 	if c.AuditConfig.ENABLE_MYSQL_MERGE_ALTER_TABLE && !dbVersionIns.IsTiDB() {
 		if ok, val := utils.IsRepeat(mergeAlters); ok {
 			for _, v := range val {
 				data.Summary = append(data.Summary, fmt.Sprintf("[MySQL数据库]表`%s`的多条ALTER操作,请合并为一条ALTER语句", v))
-			}
-		}
-	}
-	if !c.AuditConfig.ENABLE_TIDB_MERGE_ALTER_TABLE && dbVersionIns.IsTiDB() {
-		if ok, val := utils.IsRepeat(mergeAlters); ok {
-			for _, v := range val {
-				data.Summary = append(data.Summary, fmt.Sprintf("[TiDB数据库]表`%s`的多条ALTER操作,请拆分为多条ALTER语句", v))
 			}
 		}
 	}
