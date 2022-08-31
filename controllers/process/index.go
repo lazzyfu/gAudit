@@ -170,7 +170,7 @@ func (r *RedundantIndex) CheckRepeatColsWithDiffIndexes() error {
 		if !idxCols[valueJoin] {
 			idxCols[valueJoin] = true
 		} else {
-			return fmt.Errorf("表`%s`发现了重复定义的索引`%s`,已经存在(%s)的索引", r.Table, item.Index, strings.Join(item.Cols, ","))
+			return fmt.Errorf("表`%s`发现了重复定义的索引`%s`,已经存在定义列相同索引`%s`", r.Table, item.Index, strings.Join(item.Cols, ","))
 		}
 	}
 	return nil
@@ -191,10 +191,10 @@ func (r *RedundantIndex) CheckRedundantColsWithDiffIndexes() error {
 				continue
 			}
 			if strings.HasPrefix(k, k1) && utils.IsSubKey(k, k1) {
-				return fmt.Errorf("表`%s`发现了冗余索引,冗余索引的字段组合为%s/%s",
+				return fmt.Errorf("表`%s`发现了冗余索引,冗余索引的字段组合为(%s)/(%s)",
 					r.Table,
-					strings.Split(k, utils.KeyJoinChar),
-					strings.Split(k1, utils.KeyJoinChar),
+					strings.Replace(k, utils.KeyJoinChar, ",", -1),
+					strings.Replace(k1, utils.KeyJoinChar, ",", -1),
 				)
 			}
 		}
