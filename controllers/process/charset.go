@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"sqlSyntaxAudit/common/utils"
 
-	"github.com/pingcap/parser/mysql"
+	"github.com/pingcap/tidb/parser/mysql"
 )
 
 // 字符集

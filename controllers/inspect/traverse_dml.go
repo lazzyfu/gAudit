@@ -9,7 +9,7 @@ package inspect
 import (
 	"sqlSyntaxAudit/controllers/process"
 
-	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/tidb/parser/ast"
 )
 
 // TraverseDMLInsertIntoSelect

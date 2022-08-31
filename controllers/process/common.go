@@ -3,7 +3,7 @@ package process
 import (
 	"strings"
 
-	"github.com/pingcap/parser/mysql"
+	"github.com/pingcap/tidb/parser/mysql"
 )
 
 var charSets = map[string]int{

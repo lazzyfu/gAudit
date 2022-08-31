@@ -7,7 +7,7 @@
 package inspect
 
 import (
-	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/tidb/parser/ast"
 )
 
 // TraverseRenameTable
@@ -20,8 +20,10 @@ type TraverseRenameTable struct {
 func (c *TraverseRenameTable) Enter(in ast.Node) (ast.Node, bool) {
 	if stmt, ok := in.(*ast.RenameTableStmt); ok {
 		c.IsMatch++
-		c.OldTable = stmt.OldTable.Name.String()
-		c.NewTable = stmt.NewTable.Name.String()
+		for _, t := range stmt.TableToTables {
+			c.OldTable = t.OldTable.Name.String()
+			c.NewTable = t.NewTable.Name.String()
+		}
 	}
 	return in, false
 }

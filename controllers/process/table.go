@@ -31,7 +31,7 @@ type TableOptions struct {
 // 检查表名长度
 func (t *TableOptions) CheckTableLength() error {
 	if utf8.RuneCountInString(t.Table) > t.AuditConfig.MAX_TABLE_NAME_LENGTH {
-		return fmt.Errorf("表名`%s`字符数超出限制,最大字符限制为%d", t.Table, t.AuditConfig.MAX_TABLE_NAME_LENGTH)
+		return fmt.Errorf("表名`%s`命名长度超出限制,最大字符数%d", t.Table, t.AuditConfig.MAX_TABLE_NAME_LENGTH)
 	}
 	return nil
 }

@@ -10,7 +10,7 @@ import (
 	"sqlSyntaxAudit/common/utils"
 	"sqlSyntaxAudit/config"
 
-	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/tidb/parser/ast"
 )
 
 type Rule struct {

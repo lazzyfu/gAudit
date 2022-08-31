@@ -14,7 +14,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/pingcap/parser/mysql"
+	"github.com/pingcap/tidb/parser/mysql"
 )
 
 // 检查列的属性
@@ -35,7 +35,7 @@ type ColOptions struct {
 // 检查列名长度
 func (c *ColOptions) CheckColumnLength() error {
 	if utf8.RuneCountInString(c.Column) > c.AuditConfig.MAX_COLUMN_NAME_LENGTH {
-		return fmt.Errorf("列`%s`字符数超出限制,最大字符限制为%d[表`%s`]", c.Column, c.AuditConfig.MAX_COLUMN_NAME_LENGTH, c.Table)
+		return fmt.Errorf("列`%s`命名长度超出限制,最大字符数为%d[表`%s`]", c.Column, c.AuditConfig.MAX_COLUMN_NAME_LENGTH, c.Table)
 	}
 	return nil
 }

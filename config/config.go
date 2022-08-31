@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/tidb/parser/ast"
 )
 
 type Audit struct {

@@ -9,7 +9,7 @@ import (
 	"sqlSyntaxAudit/common/utils"
 	"sqlSyntaxAudit/controllers/process"
 
-	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/tidb/parser/ast"
 	driver "github.com/pingcap/tidb/types/parser_driver"
 )
 

@@ -9,7 +9,7 @@ package inspect
 import (
 	"sqlSyntaxAudit/config"
 
-	"github.com/pingcap/parser"
+	"github.com/pingcap/tidb/parser"
 	_ "github.com/pingcap/tidb/types/parser_driver"
 )
 

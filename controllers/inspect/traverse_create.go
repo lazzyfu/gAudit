@@ -11,8 +11,8 @@ import (
 	"sqlSyntaxAudit/controllers/process"
 	"strings"
 
-	"github.com/pingcap/parser/ast"
-	"github.com/pingcap/parser/mysql"
+	"github.com/pingcap/tidb/parser/ast"
+	"github.com/pingcap/tidb/parser/mysql"
 	driver "github.com/pingcap/tidb/types/parser_driver"
 )
 

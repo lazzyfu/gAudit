@@ -23,7 +23,7 @@ import (
 
 	query "sqlSyntaxAudit/common/query"
 
-	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/tidb/parser/ast"
 	_ "github.com/pingcap/tidb/types/parser_driver"
 	"github.com/sirupsen/logrus"
 )

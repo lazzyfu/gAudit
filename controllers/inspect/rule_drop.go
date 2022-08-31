@@ -7,7 +7,7 @@
 package inspect
 
 import (
-	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/tidb/parser/ast"
 )
 
 func DropTableRules() []Rule {
