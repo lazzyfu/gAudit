@@ -64,5 +64,4 @@ curl --request POST '127.0.0.1:8081/api/v1/audit' \
 ```
 
 #### 致谢
-- [goInception](https://github.com/hanchuanchuan/goInceptio)
 - [PingCAP](https://github.com/pingcap/tidb/tree/master/parser)

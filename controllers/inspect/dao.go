@@ -51,12 +51,12 @@ func DescTable(table string, db *utils.DB) (error, string) {
 	if me, ok := err.(*mysqlapi.MySQLError); ok {
 		if me.Number == 1146 {
 			// 表不存在
-			return err, fmt.Sprintf("表`%s`不存在", table)
+			return err, fmt.Sprintf("表或视图`%s`不存在", table)
 		} else if me.Number == 1045 {
 			return err, fmt.Sprintf("访问目标数据库%s:%d失败,%s", db.Host, db.Port, err.Error())
 		}
 	}
-	return nil, fmt.Sprintf("表`%s`已经存在", table)
+	return nil, fmt.Sprintf("表或视图`%s`已经存在", table)
 }
 
 // 获取DB变量
