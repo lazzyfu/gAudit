@@ -13,6 +13,10 @@ import (
 func DMLRules() []Rule {
 	return []Rule{
 		{
+			Hint:      "DML#限制部分表进行语法审核",
+			CheckFunc: (*Rule).RuleDisableAuditDMLTables,
+		},
+		{
 			Hint:      "DML#是否允许INSERT INTO SELECT语法",
 			CheckFunc: (*Rule).RuleDMLInsertIntoSelect,
 		},
@@ -41,6 +45,13 @@ func DMLRules() []Rule {
 			CheckFunc: (*Rule).RuleDMLMaxInsertRows,
 		},
 	}
+}
+
+// RuleDisableAuditDMLTables
+func (r *Rule) RuleDisableAuditDMLTables(tistmt *ast.StmtNode) {
+	v := &TraverseDisableAuditDMLTables{}
+	(*tistmt).Accept(v)
+	LogicDisableAuditDMLTables(v, r)
 }
 
 // RuleDMLInsertIntoSelect

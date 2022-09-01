@@ -97,7 +97,6 @@ func (r *Rule) RuleAlterTiDBMerge(tistmt *ast.StmtNode) {
 	LogicAlterTableTiDBMerge(v, r)
 }
 
-
 // RuleAlterTableDropCols
 func (r *Rule) RuleAlterTableDropColsOrIndexes(tistmt *ast.StmtNode) {
 	v := &TraverseAlterTableDropColsOrIndexes{}

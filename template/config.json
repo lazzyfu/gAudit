@@ -72,8 +72,35 @@
     "DML_DISABLE_ORDERBY": true,
     "DML_DISABLE_LIMIT": true,
     "DISABLE_REPLACE": true,
-    "DISABLE_INSERT_INTO_SELECT": true,
+    "DISABLE_INSERT_INTO_SELECT": false,
     "DISABLE_ON_DUPLICATE": true,
     "MAX_AFFECTED_ROWS": 1000,
-    "MAX_INSERT_ROWS": 100
+    "MAX_INSERT_ROWS": 100,
+    "DISABLE_AUDIT_DML_TABLES": [
+        {
+            "DB": "test",
+            "Tables": [
+                "t1",
+                "t2"
+            ],
+            "Reason": "研发禁止审核和提交"
+        }
+    ],
+    "DISABLE_AUDIT_DDL_TABLES": [
+        {
+            "DB": "test",
+            "Tables": [
+                "t1"
+            ],
+            "Reason": "研发禁止审核和提交"
+        },
+        {
+            "DB": "test1",
+            "Tables": [
+                "c1",
+                "c2"
+            ],
+            "Reason": "研发禁止审核和提交"
+        }
+    ]
 }

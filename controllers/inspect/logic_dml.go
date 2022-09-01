@@ -13,6 +13,24 @@ import (
 	"sqlSyntaxAudit/controllers/process"
 )
 
+// LogicDisableAuditDMLTables
+func LogicDisableAuditDMLTables(v *TraverseDisableAuditDMLTables, r *Rule) {
+	if v.IsMatch == 0 {
+		return
+	}
+	// 禁止审核指定的表
+	if len(r.AuditConfig.DISABLE_AUDIT_DML_TABLES) > 0 {
+		for _, item := range r.AuditConfig.DISABLE_AUDIT_DML_TABLES {
+			for _, table := range v.Tables {
+				if item.DB == r.DB.Database && utils.IsContain(item.Tables, table) {
+					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DML语法审核,原因: %s", r.DB.Database, table, item.Reason))
+					r.IsSkipNextStep = true
+				}
+			}
+		}
+	}
+}
+
 // LogicDMLInsertIntoSelect
 func LogicDMLInsertIntoSelect(v *TraverseDMLInsertIntoSelect, r *Rule) {
 	if v.IsMatch == 0 {

@@ -12,6 +12,50 @@ import (
 	"github.com/pingcap/tidb/parser/ast"
 )
 
+func (c *TraverseDisableAuditDMLTables) CheckSelectItem(node ast.ResultSetNode) {
+	// 提取表名
+	if node == nil {
+		return
+	}
+	switch n := node.(type) {
+	case *ast.Join:
+		c.CheckSelectItem(n.Left)
+		c.CheckSelectItem(n.Right)
+	case *ast.TableSource:
+		c.CheckSelectItem(n.Source)
+	case *ast.TableName:
+		c.Tables = append(c.Tables, n.Name.String())
+	}
+}
+
+// TraverseDisableAuditDMLTables
+type TraverseDisableAuditDMLTables struct {
+	Tables  []string
+	IsMatch int // 是否匹配当前规则
+}
+
+func (c *TraverseDisableAuditDMLTables) Enter(in ast.Node) (ast.Node, bool) {
+	switch stmt := in.(type) {
+	case *ast.InsertStmt:
+		c.IsMatch++
+		c.CheckSelectItem(stmt.Table.TableRefs)
+	case *ast.UpdateStmt:
+		c.IsMatch++
+		c.CheckSelectItem(stmt.TableRefs.TableRefs)
+	case *ast.DeleteStmt:
+		c.IsMatch++
+		c.CheckSelectItem(stmt.TableRefs.TableRefs)
+		for _, table := range stmt.Tables.Tables {
+			c.Tables = append(c.Tables, table.Name.O)
+		}
+	}
+	return in, false
+}
+
+func (c *TraverseDisableAuditDMLTables) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}
+
 // TraverseDMLInsertIntoSelect
 type TraverseDMLInsertIntoSelect struct {
 	IsMatch           int // 是否匹配当前规则

@@ -18,6 +18,12 @@ type Audit struct {
 	TiStmt []ast.StmtNode // 通过TiDB解析出的抽象语法树
 }
 
+type DisableTablesAudit struct {
+	DB     string   // 库名
+	Tables []string // 表名
+	Reason string   // 原因
+}
+
 type AuditConfiguration struct {
 	// system config
 	ListenAddress string // 服务侦听地址
@@ -89,11 +95,14 @@ type AuditConfiguration struct {
 	DML_DISABLE_SUBQUERY       bool   // DML语句不能有子查询
 	CHECK_DML_JOIN_WITH_ON     bool   // DML的JOIN语句必须有ON语句
 	EXPLAIN_RULE               string // explain判断受影响行数时使用的规则("first", "max")。 "first": 使用第一行的explain结果作为受影响行数, "max": 使用explain结果中的最大值作为受影响行数
-	MAX_AFFECTED_ROWS          int  // 最大影响行数，默认100
+	MAX_AFFECTED_ROWS          int    // 最大影响行数，默认100
 	MAX_INSERT_ROWS            int    // 一次最多允许insert的行, eg: insert into tbl(col,...) values(row1), (row2)...
 	DISABLE_REPLACE            bool   // 是否禁用replace语句
 	DISABLE_INSERT_INTO_SELECT bool   // 是否禁用insert/replace into select语法
 	DISABLE_ON_DUPLICATE       bool   // 是否禁止insert on duplicate语法
+	// 禁止语法审核的表
+	DISABLE_AUDIT_DML_TABLES []DisableTablesAudit // 禁止指定的表的DML语句进行审核
+	DISABLE_AUDIT_DDL_TABLES []DisableTablesAudit // 禁止指定的表的DDL语句进行审核
 }
 
 func newAuditConfiguration() *AuditConfiguration {
@@ -166,6 +175,8 @@ func newAuditConfiguration() *AuditConfiguration {
 		DISABLE_REPLACE:                      true,
 		DISABLE_INSERT_INTO_SELECT:           true,
 		DISABLE_ON_DUPLICATE:                 true,
+		DISABLE_AUDIT_DML_TABLES:             []DisableTablesAudit{},
+		DISABLE_AUDIT_DDL_TABLES:             []DisableTablesAudit{},
 	}
 }
 

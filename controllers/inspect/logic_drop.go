@@ -8,6 +8,7 @@ package inspect
 
 import (
 	"fmt"
+	"sqlSyntaxAudit/common/utils"
 )
 
 // LogicDropTable
@@ -19,6 +20,16 @@ func LogicDropTable(v *TraverseDropTable, r *Rule) {
 		if !r.AuditConfig.ENABLE_DROP_TABLE {
 			r.Summary = append(r.Summary, fmt.Sprintf("禁止DROP[表%s]", v.Tables))
 			return
+		}
+		// 禁止审核指定的表
+		if len(r.AuditConfig.DISABLE_AUDIT_DDL_TABLES) > 0 {
+			for _, item := range r.AuditConfig.DISABLE_AUDIT_DDL_TABLES {
+				for _, table := range v.Tables {
+					if item.DB == r.DB.Database && utils.IsContain(item.Tables, table) {
+						r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DDL语法审核,原因: %s", r.DB.Database, table, item.Reason))
+					}
+				}
+			}
 		}
 		// 检查表是否存在
 		for _, table := range v.Tables {
@@ -38,6 +49,14 @@ func LogicTruncateTable(v *TraverseTruncateTable, r *Rule) {
 		if !r.AuditConfig.ENABLE_TRUNCATE_TABLE {
 			r.Summary = append(r.Summary, fmt.Sprintf("禁止TRUNCATE[表%s]", v.Table))
 			return
+		}
+		// 禁止审核指定的表
+		if len(r.AuditConfig.DISABLE_AUDIT_DDL_TABLES) > 0 {
+			for _, item := range r.AuditConfig.DISABLE_AUDIT_DDL_TABLES {
+				if item.DB == r.DB.Database && utils.IsContain(item.Tables, v.Table) {
+					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DDL语法审核,原因: %s", r.DB.Database, v.Table, item.Reason))
+				}
+			}
 		}
 		// 检查表是否存在
 		if err, msg := DescTable(v.Table, r.DB); err != nil {
