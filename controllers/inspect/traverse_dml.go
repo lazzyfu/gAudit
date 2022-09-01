@@ -45,9 +45,6 @@ func (c *TraverseDisableAuditDMLTables) Enter(in ast.Node) (ast.Node, bool) {
 	case *ast.DeleteStmt:
 		c.IsMatch++
 		c.CheckSelectItem(stmt.TableRefs.TableRefs)
-		for _, table := range stmt.Tables.Tables {
-			c.Tables = append(c.Tables, table.Name.O)
-		}
 	}
 	return in, false
 }
