@@ -7,6 +7,7 @@
   - [审计字段](#审计字段)
     - [参数](#参数-1)
       - [CHECK_TABLE_AUDIT_TYPE_COLUMNS](#check_table_audit_type_columns)
+  - [限制指定的表进行DDL/DML语法审核](#限制指定的表进行ddldml语法审核)
 ## 最佳实践
 ### 自定义NOT NULL
 #### 参数
@@ -50,4 +51,41 @@ remark text comment '备注'
 ```sql
 `UPDATED_AT` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 `CREATED_AT` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
+```
+
+### 限制指定的表进行DDL/DML语法审核
+一些特殊的场景，研发希望部分表不能提交DDL和DML工单，场景举例：
+用户业务库：
+  -  库：db_users
+  -  表：tbl_users
+  -  类型：主表
+  -  业务读写该表
+
+支付业务库：
+  -  库：db_pay
+  -  表：tbl_users
+  -  类型：备表
+  -  业务只读该表，数据和表结构从主表同步
+
+上述场景下，我们可以配置db_pay.tbl_users禁止语法审核，可以保证对db_pay.tbl_users的DDL和DML操作无法提交，保证数据一致性。
+
+```json
+"DISABLE_AUDIT_DDL_TABLES": [
+      {
+        "DB": "db_pay",
+        "Reason": "限制审核和提交,请联系支付业务研发",
+        "Tables": [
+          "tbl_users"
+        ]
+      },
+    ],
+"DISABLE_AUDIT_DML_TABLES": [
+  {
+    "DB": "db_pay",
+    "Reason": "限制审核和提交,请联系支付业务研发",
+    "Tables": [
+      "tbl_users"
+    ]
+  }
+],
 ```
