@@ -128,6 +128,7 @@ func (i *IndexNumber) CheckPrimaryKeyColsNum() error {
 // 检查冗余索引
 type IndexColsMap struct {
 	Index string   // 索引
+	Tag   string   // 标记,值:is_drop/is_add
 	Cols  []string // 组成索引的列
 }
 type RedundantIndex struct {
@@ -177,21 +178,51 @@ func (r *RedundantIndex) CheckRepeatColsWithDiffIndexes() error {
 }
 
 func (r *RedundantIndex) CheckRedundantColsWithDiffIndexes() error {
-	// 查找冗余的索引,即索引名不一样,但是定义的列冗余,不区分大小写
-	// KEY idx_a (col1),
-	// KEY idx_b (col1,col2),
-	// KEY idx_c (col1,col2,col3),
+	/*
+		查找冗余的索引,即索引名不一样,但是定义的列冗余,不区分大小写
+		KEY idx_a (col1),
+		KEY idx_b (col1,col2),
+		KEY idx_c (col1,col2,col3)
+
+		r.IndexesCols数据结构：
+		[
+			{UNIQ_PID_COMMITID_TOKEN is_add [i_project_id ch_commit_id i_task_type]}
+			{UNIQ_PID_COMMITID is_drop []}
+			{UNIQ_PID_COMMITID  [i_project_id ch_commit_id]}
+			{IDX_STATUS_RETRY_COUNT  [i_status i_retry_count]}
+			{IDX_STATUS_UPDATETIME  [i_status d_update_time]}
+		]
+	*/
 	var idxCols []string
+
+	/*
+		解决冗余索引时，当指定drop冗余索引时，允许通过
+		表结构已有索引uniq_aa(`a`, `b`)
+		添加索引：
+			ALTER TABLE `tbl1` ADD UNIQUE uniq_bb(`a`,`b`,`c`),DROP INDEX `idx_aa`;
+	*/
+	var IsDropIndexes []string
+	// 找出is_drop的索引操作
 	for _, item := range r.IndexesCols {
+		if item.Tag == "is_drop" {
+			IsDropIndexes = append(IsDropIndexes, item.Index)
+		}
+	}
+	// 从r.IndexesCols中移除is_drop的索引名
+	for _, item := range r.IndexesCols {
+		if utils.IsContain(IsDropIndexes, item.Index) {
+			break
+		}
 		idxCols = append(idxCols, strings.ToLower(strings.Join(item.Cols, utils.KeyJoinChar)))
 	}
+	// 检查是否存在冗余索引
 	for _, k := range idxCols {
 		for _, k1 := range idxCols {
 			if k == k1 {
 				continue
 			}
 			if strings.HasPrefix(k, k1) && utils.IsSubKey(k, k1) {
-				return fmt.Errorf("表`%s`发现了冗余索引,冗余索引的字段组合为(%s)/(%s)",
+				return fmt.Errorf("表`%s`发现了冗余索引,冗余索引的字段组合为(%s)/(%s)【在当前操作中您可以增加一个drop原冗余索引的操作】",
 					r.Table,
 					strings.Replace(k, utils.KeyJoinChar, ",", -1),
 					strings.Replace(k1, utils.KeyJoinChar, ",", -1),

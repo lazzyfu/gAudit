@@ -401,8 +401,11 @@ func (c *TraverseAlterTableRedundantIndexes) Enter(in ast.Node) (ast.Node, bool)
 		c.Table = stmt.Table.Name.String()
 		c.Redundant.Table = stmt.Table.Name.String()
 		for _, spec := range stmt.Specs {
-			// 索引数量
-			if spec.Tp == ast.AlterTableAddConstraint {
+			switch spec.Tp {
+			case ast.AlterTableDropIndex:
+				c.IsMatch++
+				c.Redundant.IndexesCols = append(c.Redundant.IndexesCols, process.IndexColsMap{Index: spec.Name, Tag: "is_drop"})
+			case ast.AlterTableAddConstraint:
 				c.IsMatch++
 				switch spec.Constraint.Tp {
 				case ast.ConstraintIndex, ast.ConstraintKey, ast.ConstraintUniq, ast.ConstraintUniqKey, ast.ConstraintUniqIndex, ast.ConstraintFulltext:
@@ -411,7 +414,7 @@ func (c *TraverseAlterTableRedundantIndexes) Enter(in ast.Node) (ast.Node, bool)
 					for _, v := range spec.Constraint.Keys {
 						idxColsMap = append(idxColsMap, v.Column.Name.L)
 					}
-					c.Redundant.IndexesCols = append(c.Redundant.IndexesCols, process.IndexColsMap{Index: spec.Constraint.Name, Cols: idxColsMap})
+					c.Redundant.IndexesCols = append(c.Redundant.IndexesCols, process.IndexColsMap{Index: spec.Constraint.Name, Tag: "is_add", Cols: idxColsMap})
 				}
 			}
 		}
