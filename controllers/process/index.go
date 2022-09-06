@@ -222,7 +222,7 @@ func (r *RedundantIndex) CheckRedundantColsWithDiffIndexes() error {
 				continue
 			}
 			if strings.HasPrefix(k, k1) && utils.IsSubKey(k, k1) {
-				return fmt.Errorf("表`%s`发现了冗余索引,冗余索引的字段组合为(%s)/(%s)【在当前操作中您可以增加一个drop原冗余索引的操作】",
+				return fmt.Errorf("表`%s`发现了冗余索引,冗余索引的字段组合为(%s)/(%s)【您可以增加一个drop原冗余索引的操作】",
 					r.Table,
 					strings.Replace(k, utils.KeyJoinChar, ",", -1),
 					strings.Replace(k1, utils.KeyJoinChar, ",", -1),

@@ -68,6 +68,8 @@
     - [DISABLE_REPLACE](#disable_replace)
     - [DISABLE_INSERT_INTO_SELECT](#disable_insert_into_select)
     - [DISABLE_ON_DUPLICATE](#disable_on_duplicate)
+    - [DISABLE_AUDIT_DML_TABLES](#disable_audit_dml_tables)
+    - [DISABLE_AUDIT_DDL_TABLES](#disable_audit_ddl_tables)
 ## 审核参数
 ### 系统参数
 > 不支持通过接口`custom_audit_parameters`传递的参数
@@ -411,4 +413,47 @@ UPDATED_AT datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTA
 描述: 是否禁止insert on duplicate语法
 默认值: true
 可选值: true/false
+
+#### DISABLE_AUDIT_DML_TABLES
+适用场景: 多个库直接数据同步的主备表
+描述: 禁止对指定的表进行DML审核
+默认值: 空
+配置例子:
+```json
+"DISABLE_AUDIT_DML_TABLES": [
+    {
+        "DB": "test",
+        "Tables": [
+            "t1",
+            "t2"
+        ],
+        "Reason": "xxx业务研发禁止审核和提交,请联系xxx"
+    }
+]
+```
+
+#### DISABLE_AUDIT_DDL_TABLES
+适用场景: 多个库直接数据同步的主备表
+描述: 禁止对指定的表进行DDL审核
+默认值: 空
+配置例子:
+```json
+"DISABLE_AUDIT_DDL_TABLES": [
+    {
+        "DB": "test",
+        "Tables": [
+            "t1"
+        ],
+        "Reason": "xxx业务研发禁止审核和提交,请联系xxx"
+    },
+    {
+        "DB": "test1",
+        "Tables": [
+            "c1",
+            "c2"
+        ],
+        "Reason": "xxx业务研发禁止审核和提交,请联系xxx"
+    }
+]
+```
 
