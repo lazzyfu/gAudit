@@ -7,6 +7,8 @@
 package inspect
 
 import (
+	"sqlSyntaxAudit/controllers/extract"
+
 	"github.com/pingcap/tidb/parser/ast"
 )
 
@@ -50,7 +52,7 @@ func DMLRules() []Rule {
 // RuleDisableAuditDMLTables
 func (r *Rule) RuleDisableAuditDMLTables(tistmt *ast.StmtNode) {
 	v := &TraverseDisableAuditDMLTables{}
-	(*tistmt).Accept(v)
+	v.Tables, _ = extract.ExtractTablesFromStatement(tistmt)
 	LogicDisableAuditDMLTables(v, r)
 }
 

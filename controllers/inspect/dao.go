@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sqlSyntaxAudit/common/kv"
 	"sqlSyntaxAudit/common/utils"
+	"sqlSyntaxAudit/controllers/parser"
 	"strings"
 
 	mysqlapi "github.com/go-sql-driver/mysql"
@@ -40,7 +41,7 @@ func ShowCreateTable(table string, db *utils.DB, kv *kv.KVCache) (data interface
 	}
 
 	var warns []error
-	data, warns, err = NewParse(createStatement, "", "")
+	data, warns, err = parser.NewParse(createStatement, "", "")
 	if len(warns) > 0 {
 		return nil, fmt.Errorf("Parse Warning: %s", utils.ErrsJoin("; ", warns))
 	}

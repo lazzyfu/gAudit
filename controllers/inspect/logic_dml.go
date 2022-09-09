@@ -15,9 +15,6 @@ import (
 
 // LogicDisableAuditDMLTables
 func LogicDisableAuditDMLTables(v *TraverseDisableAuditDMLTables, r *Rule) {
-	if v.IsMatch == 0 {
-		return
-	}
 	// 禁止审核指定的表
 	if len(r.AuditConfig.DISABLE_AUDIT_DML_TABLES) > 0 {
 		for _, item := range r.AuditConfig.DISABLE_AUDIT_DML_TABLES {
@@ -27,6 +24,13 @@ func LogicDisableAuditDMLTables(v *TraverseDisableAuditDMLTables, r *Rule) {
 					r.IsSkipNextStep = true
 				}
 			}
+		}
+	}
+	// DML语句检查表是否存在
+	for _, table := range v.Tables {
+		if err, msg := DescTable(table, r.DB); err != nil {
+			r.Summary = append(r.Summary, msg)
+			r.IsSkipNextStep = true
 		}
 	}
 }
@@ -65,11 +69,6 @@ func LogicDMLInsertWithColumns(v *TraverseDMLInsertWithColumns, r *Rule) {
 	if v.DMLType == "REPLACE" && r.AuditConfig.DISABLE_REPLACE {
 		r.Summary = append(r.Summary, fmt.Sprintf("不允许使用%s语句", v.DMLType))
 		r.IsSkipNextStep = true
-		return
-	}
-	// 检查表是否存在
-	if err, msg := DescTable(v.Table, r.DB); err != nil {
-		r.Summary = append(r.Summary, msg)
 		return
 	}
 	// 获取db表结构

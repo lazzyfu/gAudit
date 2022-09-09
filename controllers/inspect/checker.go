@@ -14,6 +14,7 @@ import (
 	"sqlSyntaxAudit/common/kv"
 	"sqlSyntaxAudit/common/utils"
 	"sqlSyntaxAudit/config"
+	"sqlSyntaxAudit/controllers/parser"
 	"sqlSyntaxAudit/controllers/process"
 	"sqlSyntaxAudit/forms"
 	"sqlSyntaxAudit/global"
@@ -38,7 +39,7 @@ type ReturnData struct {
 	Query        string   `json:"query"` // 原始SQL
 }
 type Checker struct {
-	Form        forms.SyntaxAudit
+	Form        forms.SyntaxAuditForm
 	Charset     string
 	Collation   string
 	Audit       *config.Audit
@@ -122,7 +123,7 @@ func (c *Checker) Parse() error {
 		return err
 	}
 	// 解析
-	c.Audit, warns, err = NewParse(c.Form.SqlText, c.Charset, c.Collation)
+	c.Audit, warns, err = parser.NewParse(c.Form.SqlText, c.Charset, c.Collation)
 	if len(warns) > 0 {
 		return fmt.Errorf("Parse Warning: %s", utils.ErrsJoin("; ", warns))
 	}

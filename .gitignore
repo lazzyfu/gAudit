@@ -6,3 +6,4 @@ tmp
 tests/logs
 github.gAudit.code-workspace
 bin/*
+tests/extract_tables_template.sql

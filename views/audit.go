@@ -8,6 +8,7 @@ package views
 
 import (
 	"sqlSyntaxAudit/common/response"
+	"sqlSyntaxAudit/controllers/extract"
 	"sqlSyntaxAudit/controllers/inspect"
 	"sqlSyntaxAudit/forms"
 
@@ -16,7 +17,7 @@ import (
 )
 
 func SyntaxInspect(c *gin.Context) {
-	var form forms.SyntaxAudit
+	var form forms.SyntaxAuditForm
 	var RequestID string = requestid.Get(c)
 	form.RequestID = RequestID
 
@@ -25,6 +26,25 @@ func SyntaxInspect(c *gin.Context) {
 	} else {
 		checker := inspect.Checker{Form: form}
 		err, returnData := checker.Check(RequestID)
+		if err != nil {
+			response.Fail(c, err.Error())
+		} else {
+			response.Success(c, returnData)
+		}
+	}
+}
+
+// 提取表名
+func ExtractTables(c *gin.Context) {
+	var form forms.ExtractTablesForm
+	var RequestID string = requestid.Get(c)
+	form.RequestID = RequestID
+
+	if err := c.ShouldBind(&form); err != nil {
+		response.ValidateFail(c, err.Error())
+	} else {
+		checker := extract.Checker{Form: form}
+		err, returnData := checker.Extract(RequestID)
 		if err != nil {
 			response.Fail(c, err.Error())
 		} else {

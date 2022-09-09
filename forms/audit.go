@@ -6,7 +6,7 @@
 
 package forms
 
-type SyntaxAudit struct {
+type SyntaxAuditForm struct {
 	DbUser            string                 `json:"db_user"`
 	DbPassword        string                 `json:"db_password"`
 	DbHost            string                 `json:"db_host"`
@@ -16,4 +16,9 @@ type SyntaxAudit struct {
 	CustomAuditParams map[string]interface{} `json:"custom_audit_parameters"` // 自定义的参数
 	SqlText           string                 `json:"sqltext"`                 // 审计的SQL文本
 	RequestID         string                 `json:"request_id"`              // 每次请求的ID
+}
+
+type ExtractTablesForm struct {
+	SqlText   string `json:"sqltext"`    // SQL文本
+	RequestID string `json:"request_id"` // 每次请求的ID
 }

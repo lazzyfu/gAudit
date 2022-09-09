@@ -1,10 +1,10 @@
 /*
 @Time    :   2022/07/06 10:12:33
-@Author  :   zongfei.fu 
+@Author  :   zongfei.fu
 @Desc    :   None
 */
 
-package inspect
+package parser
 
 import (
 	"sqlSyntaxAudit/config"

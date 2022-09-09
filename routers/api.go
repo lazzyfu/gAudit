@@ -16,6 +16,7 @@ func SetupRouter(r *gin.Engine) *gin.Engine {
 	v1 := r.Group("/api/v1")
 	{
 		v1.POST("/audit", views.SyntaxInspect)
+		v1.POST("/extract-tables", views.ExtractTables)
 	}
 	return r
 }
