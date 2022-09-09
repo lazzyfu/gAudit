@@ -35,9 +35,9 @@ func removeDuplicateElement(data []string) []string {
 
 // 返回数据
 type ReturnData struct {
-	Tables []string // 表名
-	Type   string   `json:"type"`  // 语句类型
-	Query  string   `json:"query"` // 原始SQL
+	Tables []string `json:"tables"` // 表名
+	Type   string   `json:"type"`   // 语句类型
+	Query  string   `json:"query"`  // 原始SQL
 }
 
 // 检查结构体

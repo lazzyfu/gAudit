@@ -87,18 +87,18 @@ curl --location --request POST '127.0.0.1:8081/api/v1/extract-tables' \
 #### 输出
 ```json
 {
-  "request_id": "67becd2e-af0a-4c88-969a-96132fa0d9ca",
+  "request_id": "cb9e5249-c77c-4320-bbfb-9fe0a9391da7",
   "code": "0000",
   "data": [
     {
-      "Tables": [
+      "tables": [
         "t1"
       ],
       "type": "ALTER TABLE",
       "query": "alter table t1 add name varchar(100);"
     },
     {
-      "Tables": [
+      "tables": [
         "tt1",
         "tt2"
       ],
@@ -106,7 +106,7 @@ curl --location --request POST '127.0.0.1:8081/api/v1/extract-tables' \
       "query": "select * from (select id,name from tt1 join tt2 on tt1.id=tt2.id where tt1.id > 100) as xx;"
     },
     {
-      "Tables": [
+      "tables": [
         "product",
         "product_price"
       ],
