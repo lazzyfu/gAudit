@@ -4,20 +4,29 @@
 ![Download](https://img.shields.io/github/downloads/lazzyfu/gAudit/total?style=flat-square)
 ![License](https://img.shields.io/github/license/lazzyfu/gAudit?style=flat-square)
 
-gAudit是一个SQL语法审核工具，支持MySQL/TiDB，通过解析SQL语法树实现语法规则审核。
+gAudit是基于golang语言实现的一个SQL语法审核工具，支持MySQL/TiDB，通过解析SQL语法树实现语法规则审核。
 
-#### 文档
+## 实践文档
 - [快速开始](docs/start.md)
 - [审核参数](docs/parameters.md)
 - [审核规则](docs/rules.md)
 - [最佳实践](docs/practice.md)
 
-#### 语法解析器
+## 语法解析器
 * [tidb parser](https://github.com/pingcap/tidb/tree/master/parser)
 
 
-#### 使用
-```
+## 使用
+> 服务端口依赖于您启动指定的端口，下面8081端口为举例
+
+| API                                         | 请求方法 | 用途     | 备注                                     |
+| ------------------------------------------- | -------- | -------- | ---------------------------------------- |
+| http://127.0.0.1:8081/api/v1/audit          | POST     | 语法审核 | 支持DDL/DML语句，支持一次提交多条SQL语句 |
+| http://127.0.0.1:8081/api/v1/extract-tables | POST     | 提取表名 | 支持DDL/DML语句，支持一次提交多条SQL语句 |
+
+### 语法审核
+#### POST请求
+```bash
 curl --request POST '127.0.0.1:8081/api/v1/audit' \
 --header 'Content-Type: application/json' \
 --data '{
@@ -63,5 +72,51 @@ curl --request POST '127.0.0.1:8081/api/v1/audit' \
 }
 ```
 
-#### 致谢
+### 提取表名
+> 支持DML/DDL、union以及更复杂的查询等
+
+#### POST请求
+```bash
+curl --location --request POST '127.0.0.1:8081/api/v1/extract-tables' \
+--header 'Content-Type: application/json' \
+--data '{
+    "sqltext": "alter table t1 add name varchar(100);select * from (select id,name from tt1 join tt2 on tt1.id=tt2.id where tt1.id > 100) as xx;UPDATE product p, product_price pp SET pp.price = p.price * 0.8 WHERE p.productid= pp.productId;"
+}' | jq .
+```
+
+#### 输出
+```json
+{
+  "request_id": "67becd2e-af0a-4c88-969a-96132fa0d9ca",
+  "code": "0000",
+  "data": [
+    {
+      "Tables": [
+        "t1"
+      ],
+      "type": "ALTER TABLE",
+      "query": "alter table t1 add name varchar(100);"
+    },
+    {
+      "Tables": [
+        "tt1",
+        "tt2"
+      ],
+      "type": "SELECT",
+      "query": "select * from (select id,name from tt1 join tt2 on tt1.id=tt2.id where tt1.id > 100) as xx;"
+    },
+    {
+      "Tables": [
+        "product",
+        "product_price"
+      ],
+      "type": "UPDATE",
+      "query": "UPDATE product p, product_price pp SET pp.price = p.price * 0.8 WHERE p.productid= pp.productId;"
+    }
+  ],
+  "message": "success"
+}
+```
+
+## 致谢
 - [PingCAP](https://github.com/pingcap/tidb/tree/master/parser)
