@@ -241,7 +241,7 @@ func TestChecker_Extract(t *testing.T) {
 			err, res := c.Extract(tt.form.RequestID)
 			assert.Equal(t, tt.wantErr, err)
 			if tt.wantErr != nil {
-				// 预期会有错误返回，就不需要进一步校验其它两个返回值了
+				// 预期会有错误返回，就不需要进一步校验res了
 				return
 			}
 			assert.Equal(t, tt.wantRes, res)

@@ -153,6 +153,7 @@ func (c *TraverseStatement) Enter(in ast.Node) (ast.Node, bool) {
 	switch stmt := in.(type) {
 	case *ast.SelectStmt:
 		c.setType("SELECT")
+		// 处理WITH语句
 		if stmt.With != nil {
 			break
 		}
