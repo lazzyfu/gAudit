@@ -9,15 +9,15 @@ package extract
 import (
 	_ "embed"
 	"fmt"
+	"github.com/pingcap/tidb/parser/ast"
+	_ "github.com/pingcap/tidb/types/parser_driver"
+	"github.com/sirupsen/logrus"
 	"sqlSyntaxAudit/common/utils"
 	"sqlSyntaxAudit/config"
 	"sqlSyntaxAudit/controllers/parser"
 	"sqlSyntaxAudit/forms"
 	logger "sqlSyntaxAudit/middleware/log"
-
-	"github.com/pingcap/tidb/parser/ast"
-	_ "github.com/pingcap/tidb/types/parser_driver"
-	"github.com/sirupsen/logrus"
+	"sync"
 )
 
 // 移除重复的值
@@ -136,15 +136,31 @@ func (e *ExtractTables) checkExprItem(expr ast.ExprNode) {
 
 // TraverseStatement
 type TraverseStatement struct {
-	Tables []string // 表名
-	Type   string   // 语句类型
+	Tables      []string // 表名
+	Type        string   // 语句类型
+	setTypeOnce sync.Once
+}
+
+func (c *TraverseStatement) setType(typ string) {
+	// 只设置一次Type, 避免类INSERT INTO SELECT获取Type错误
+	c.setTypeOnce.Do(func() {
+		c.Type = typ
+	})
 }
 
 func (c *TraverseStatement) Enter(in ast.Node) (ast.Node, bool) {
 	var e ExtractTables
 	switch stmt := in.(type) {
 	case *ast.SelectStmt:
-		c.Type = "SELECT"
+		c.setType("SELECT")
+		// 处理WITH语句
+		if stmt.With != nil {
+			break
+		}
+		// select 1;
+		if stmt.From == nil {
+			break
+		}
 		e.checkSelectItem(stmt.From.TableRefs)
 		e.checkExprItem(stmt.Where)
 		if stmt.Having != nil {
@@ -160,49 +176,49 @@ func (c *TraverseStatement) Enter(in ast.Node) (ast.Node, bool) {
 		}
 		c.Tables = append(c.Tables, e.Tables...)
 	case *ast.InsertStmt:
-		c.Type = "INSERT"
+		c.setType("INSERT")
 		if stmt.IsReplace {
-			c.Type = "REPLACE"
+			c.setType("REPLACE")
 		}
 		e.checkSelectItem(stmt.Table.TableRefs)
 		e.checkSelectItem(stmt.Select)
 		c.Tables = append(c.Tables, e.Tables...)
 	case *ast.UpdateStmt:
-		c.Type = "UPDATE"
+		c.setType("UPDATE")
 		e.checkSelectItem(stmt.TableRefs.TableRefs)
 		c.Tables = append(c.Tables, e.Tables...)
 	case *ast.DeleteStmt:
-		c.Type = "DELETE"
+		c.setType("DELETE")
 		e.checkSelectItem(stmt.TableRefs.TableRefs)
 		c.Tables = append(c.Tables, e.Tables...)
 	case *ast.CreateTableStmt:
-		c.Type = "CREATE TABLE"
+		c.setType("CREATE TABLE")
 		c.Tables = append(c.Tables, stmt.Table.Name.L)
 	case *ast.CreateViewStmt:
-		c.Type = "CREATE VIEW"
+		c.setType("CREATE VIEW")
 		c.Tables = append(c.Tables, stmt.ViewName.Name.L)
 	case *ast.CreateIndexStmt:
-		c.Type = "CREATE INDEX"
+		c.setType("CREATE INDEX")
 		c.Tables = append(c.Tables, stmt.Table.Name.L)
 	case *ast.AlterTableStmt:
-		c.Type = "ALTER TABLE"
+		c.setType("ALTER TABLE")
 		c.Tables = append(c.Tables, stmt.Table.Name.L)
 	case *ast.DropIndexStmt:
-		c.Type = "DROP INDEX"
+		c.setType("DROP INDEX")
 		c.Tables = append(c.Tables, stmt.Table.Name.L)
 	case *ast.RenameTableStmt:
-		c.Type = "RENAME TABLE"
+		c.setType("RENAME TABLE")
 		for _, t := range stmt.TableToTables {
 			c.Tables = append(c.Tables, t.OldTable.Name.String())
 			c.Tables = append(c.Tables, t.NewTable.Name.String())
 		}
 	case *ast.DropTableStmt:
-		c.Type = "DROP TABLE"
+		c.setType("DROP TABLE")
 		for _, t := range stmt.Tables {
 			c.Tables = append(c.Tables, t.Name.L)
 		}
 	case *ast.TruncateTableStmt:
-		c.Type = "TRUNCATE TABLE"
+		c.setType("TRUNCATE TABLE")
 		c.Tables = append(c.Tables, stmt.Table.Name.L)
 	}
 	return in, false
