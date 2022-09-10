@@ -115,14 +115,14 @@ func (e *ExtractTables) checkSelectItem(node ast.ResultSetNode) {
 	case *ast.TableSource:
 		e.checkSelectItem(n.Source)
 	case *ast.TableName:
-		e.Tables = append(e.Tables, n.Name.String())
+		e.Tables = append(e.Tables, n.Name.L)
 	}
 }
 
 func (e *ExtractTables) checkCTEItems(node *ast.WithClause) {
 	if node.IsRecursive {
 		for _, ctE := range node.CTEs {
-			e.RecursiveCTENames = append(e.RecursiveCTENames, ctE.Name.String())
+			e.RecursiveCTENames = append(e.RecursiveCTENames, ctE.Name.L)
 		}
 	}
 }
@@ -239,8 +239,8 @@ func (c *TraverseStatement) Enter(in ast.Node) (ast.Node, bool) {
 	case *ast.RenameTableStmt:
 		c.setType("RENAME TABLE")
 		for _, t := range stmt.TableToTables {
-			c.Tables = append(c.Tables, t.OldTable.Name.String())
-			c.Tables = append(c.Tables, t.NewTable.Name.String())
+			c.Tables = append(c.Tables, t.OldTable.Name.L)
+			c.Tables = append(c.Tables, t.NewTable.Name.L)
 		}
 	case *ast.DropTableStmt:
 		if stmt.IsView {

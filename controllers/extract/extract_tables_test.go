@@ -234,9 +234,9 @@ func TestChecker_Extract(t *testing.T) {
 			wantRes: []ReturnData{
 				{
 					Tables: []string{
-						"T1",
-						"T2",
-						"T3",
+						"t1",
+						"t2",
+						"t3",
 					},
 					Type:  "INSERT",
 					Query: "INSERT INTO T1 SELECT * FROM T2 WHERE id in (SELECT ID FROM T3)",
@@ -289,7 +289,7 @@ func TestChecker_Extract(t *testing.T) {
 				{
 					Tables: []string{
 						"v_f_players",
-						"PLAYERS",
+						"players",
 					},
 					Type:  "CREATE VIEW",
 					Query: "CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_F_players` AS select `PLAYERS`.`PLAYERNO`,`PLAYERS`.`NAME`,`PLAYERS`.`SEX`,`PLAYERS`.`PHONENO` from `PLAYERS` where (`PLAYERS`.`SEX` = 'F') WITH CASCADED CHECK OPTION;",
