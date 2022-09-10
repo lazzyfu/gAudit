@@ -33,6 +33,23 @@ func removeDuplicateElement(data []string) []string {
 	return result
 }
 
+func removeElement(data, toBeRemoved []string) []string {
+	if toBeRemoved == nil || data == nil {
+		return data
+	}
+	result := make([]string, 0, len(data))
+	temp := map[string]struct{}{}
+	for _, item := range toBeRemoved {
+		temp[item] = struct{}{}
+	}
+	for _, item := range data {
+		if _, ok := temp[item]; !ok {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
 // 返回数据
 type ReturnData struct {
 	Tables []string `json:"tables"` // 表名
@@ -79,7 +96,8 @@ func (c *Checker) Parse() error {
 
 // 提取表结构体
 type ExtractTables struct {
-	Tables []string // 表名
+	Tables            []string // 表名
+	RecursiveCTENames []string // 递归CTE别名
 }
 
 // 迭代select语句
@@ -97,7 +115,15 @@ func (e *ExtractTables) checkSelectItem(node ast.ResultSetNode) {
 	case *ast.TableSource:
 		e.checkSelectItem(n.Source)
 	case *ast.TableName:
-		e.Tables = append(e.Tables, n.Name.String())
+		e.Tables = append(e.Tables, n.Name.L)
+	}
+}
+
+func (e *ExtractTables) checkCTEItems(node *ast.WithClause) {
+	if node.IsRecursive {
+		for _, ctE := range node.CTEs {
+			e.RecursiveCTENames = append(e.RecursiveCTENames, ctE.Name.L)
+		}
 	}
 }
 
@@ -136,9 +162,10 @@ func (e *ExtractTables) checkExprItem(expr ast.ExprNode) {
 
 // TraverseStatement
 type TraverseStatement struct {
-	Tables      []string // 表名
-	Type        string   // 语句类型
-	setTypeOnce sync.Once
+	Tables            []string // 表名
+	RecursiveCTENames []string // 递归CTE别名
+	Type              string   // 语句类型
+	setTypeOnce       sync.Once
 }
 
 func (c *TraverseStatement) setType(typ string) {
@@ -155,6 +182,8 @@ func (c *TraverseStatement) Enter(in ast.Node) (ast.Node, bool) {
 		c.setType("SELECT")
 		// 处理WITH语句
 		if stmt.With != nil {
+			e.checkCTEItems(stmt.With)
+			c.RecursiveCTENames = append(c.RecursiveCTENames, e.RecursiveCTENames...)
 			break
 		}
 		// select 1;
@@ -176,9 +205,10 @@ func (c *TraverseStatement) Enter(in ast.Node) (ast.Node, bool) {
 		}
 		c.Tables = append(c.Tables, e.Tables...)
 	case *ast.InsertStmt:
-		c.setType("INSERT")
 		if stmt.IsReplace {
 			c.setType("REPLACE")
+		} else {
+			c.setType("INSERT")
 		}
 		e.checkSelectItem(stmt.Table.TableRefs)
 		e.checkSelectItem(stmt.Select)
@@ -209,11 +239,15 @@ func (c *TraverseStatement) Enter(in ast.Node) (ast.Node, bool) {
 	case *ast.RenameTableStmt:
 		c.setType("RENAME TABLE")
 		for _, t := range stmt.TableToTables {
-			c.Tables = append(c.Tables, t.OldTable.Name.String())
-			c.Tables = append(c.Tables, t.NewTable.Name.String())
+			c.Tables = append(c.Tables, t.OldTable.Name.L)
+			c.Tables = append(c.Tables, t.NewTable.Name.L)
 		}
 	case *ast.DropTableStmt:
-		c.setType("DROP TABLE")
+		if stmt.IsView {
+			c.setType("DROP VIEW")
+		} else {
+			c.setType("DROP TABLE")
+		}
 		for _, t := range stmt.Tables {
 			c.Tables = append(c.Tables, t.Name.L)
 		}
@@ -231,5 +265,5 @@ func (c *TraverseStatement) Leave(in ast.Node) (ast.Node, bool) {
 func ExtractTablesFromStatement(stmt *ast.StmtNode) ([]string, string) {
 	v := &TraverseStatement{}
 	(*stmt).Accept(v)
-	return removeDuplicateElement(v.Tables), v.Type
+	return removeElement(removeDuplicateElement(v.Tables), v.RecursiveCTENames), v.Type
 }
