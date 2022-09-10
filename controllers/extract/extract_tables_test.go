@@ -129,20 +129,6 @@ func TestChecker_Extract(t *testing.T) {
 			},
 		},
 		{
-			name: "递归的CTE(不包含任何表)",
-			form: forms.ExtractTablesForm{
-				SqlText:   "WITH RECURSIVE cte(a) AS (SELECT 1 UNION SELECT a+1 FROM cte WHERE a < 5) SELECT * FROM cte;",
-				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
-			},
-			wantRes: []ReturnData{
-				{
-					Tables: []string{},
-					Type:   "SELECT",
-					Query:  "WITH RECURSIVE cte(a) AS (SELECT 1 UNION SELECT a+1 FROM cte WHERE a < 5) SELECT * FROM cte;",
-				},
-			},
-		},
-		{
 			name: "递归的CTE",
 			form: forms.ExtractTablesForm{
 				SqlText:   "WITH RECURSIVE cte ( node, path ) AS ( SELECT node, '1'  FROM bst WHERE parent IS NULL UNION ALL SELECT bst.node,  CONCAT ( cte.path, '-->', bst.node ) FROM cte JOIN bst ON cte.node = bst.parent) SELECT * FROM cte ORDER BY node;",
