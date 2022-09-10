@@ -40,6 +40,7 @@ func TestChecker_Extract(t *testing.T) {
 			},
 		},
 		{
+			// TODO 待决策, 是否支持这种语句
 			name: "TIDB不支持的hint(mysql hint)",
 			form: forms.ExtractTablesForm{
 				SqlText:   "SELECT /*+ NO_RANGE_OPTIMIZATION(t3 PRIMARY, f2_idx) */ f1 FROM t3 WHERE f1 > 30 AND f1 < 33;",
@@ -65,7 +66,7 @@ func TestChecker_Extract(t *testing.T) {
 			},
 		},
 		{
-			name: "With语句",
+			name: "非递归的CTE",
 			form: forms.ExtractTablesForm{
 				SqlText:   "WITH xm_gl AS ( SELECT * FROM products WHERE pname IN ( '小米电视机', '格力空调' ) ) SELECT avg( price ) FROM xm_gl;",
 				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
@@ -82,7 +83,7 @@ func TestChecker_Extract(t *testing.T) {
 			},
 		},
 		{
-			name: "With语句别名与表名相同",
+			name: "非递归的CTE(别名与表名相同)",
 			form: forms.ExtractTablesForm{
 				SqlText:   "WITH products AS ( SELECT * FROM products WHERE pname IN ( select name FROM `order` where user_id=1 ) ) SELECT avg( price ) FROM products;",
 				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
@@ -96,6 +97,64 @@ func TestChecker_Extract(t *testing.T) {
 					},
 					Type:  "SELECT",
 					Query: "WITH products AS ( SELECT * FROM products WHERE pname IN ( select name FROM `order` where user_id=1 ) ) SELECT avg( price ) FROM products;",
+				},
+			},
+		},
+		{
+			name: "非递归的CTE(不包含任何表)",
+			form: forms.ExtractTablesForm{
+				SqlText:   "WITH CTE AS (SELECT 1, 2) SELECT * FROM cte t1, cte t2;",
+				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
+			},
+			wantRes: []ReturnData{
+				{
+					Tables: []string{},
+					Type:   "SELECT",
+					Query:  "WITH CTE AS (SELECT 1, 2) SELECT * FROM cte t1, cte t2;",
+				},
+			},
+		},
+		{
+			name: "递归的CTE(不包含任何表)",
+			form: forms.ExtractTablesForm{
+				SqlText:   "WITH RECURSIVE cte(a) AS (SELECT 1 UNION SELECT a+1 FROM cte WHERE a < 5) SELECT * FROM cte;",
+				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
+			},
+			wantRes: []ReturnData{
+				{
+					Tables: []string{},
+					Type:   "SELECT",
+					Query:  "WITH RECURSIVE cte(a) AS (SELECT 1 UNION SELECT a+1 FROM cte WHERE a < 5) SELECT * FROM cte;",
+				},
+			},
+		},
+		{
+			name: "递归的CTE(不包含任何表)",
+			form: forms.ExtractTablesForm{
+				SqlText:   "WITH RECURSIVE cte(a) AS (SELECT 1 UNION SELECT a+1 FROM cte WHERE a < 5) SELECT * FROM cte;",
+				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
+			},
+			wantRes: []ReturnData{
+				{
+					Tables: []string{},
+					Type:   "SELECT",
+					Query:  "WITH RECURSIVE cte(a) AS (SELECT 1 UNION SELECT a+1 FROM cte WHERE a < 5) SELECT * FROM cte;",
+				},
+			},
+		},
+		{
+			name: "递归的CTE",
+			form: forms.ExtractTablesForm{
+				SqlText:   "WITH RECURSIVE cte ( node, path ) AS ( SELECT node, '1'  FROM bst WHERE parent IS NULL UNION ALL SELECT bst.node,  CONCAT ( cte.path, '-->', bst.node ) FROM cte JOIN bst ON cte.node = bst.parent) SELECT * FROM cte ORDER BY node;",
+				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
+			},
+			wantRes: []ReturnData{
+				{
+					Tables: []string{
+						"bst",
+					},
+					Type:  "SELECT",
+					Query: "WITH RECURSIVE cte ( node, path ) AS ( SELECT node, '1'  FROM bst WHERE parent IS NULL UNION ALL SELECT bst.node,  CONCAT ( cte.path, '-->', bst.node ) FROM cte JOIN bst ON cte.node = bst.parent) SELECT * FROM cte ORDER BY node;",
 				},
 			},
 		},
@@ -201,7 +260,7 @@ func TestChecker_Extract(t *testing.T) {
 		{
 			name: "RENAME TABLE",
 			form: forms.ExtractTablesForm{
-				SqlText:   "RENAME TABLE t1 TO t2;",
+				SqlText:   "RENAME TABLE t1 TO t2, t3 to t4",
 				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
 			},
 			wantRes: []ReturnData{
@@ -209,14 +268,16 @@ func TestChecker_Extract(t *testing.T) {
 					Tables: []string{
 						"t1",
 						"t2",
+						"t3",
+						"t4",
 					},
 					Type:  "RENAME TABLE",
-					Query: "RENAME TABLE t1 TO t2;",
+					Query: "RENAME TABLE t1 TO t2, t3 to t4",
 				},
 			},
 		},
 		{
-			name: "RENAME TABLE",
+			name: "SIMPLE CREATE VIEW",
 			form: forms.ExtractTablesForm{
 				SqlText:   "CREATE VIEW v1 AS SELECT * FROM t1 WHERE c1 > 2;",
 				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
@@ -229,6 +290,120 @@ func TestChecker_Extract(t *testing.T) {
 					},
 					Type:  "CREATE VIEW",
 					Query: "CREATE VIEW v1 AS SELECT * FROM t1 WHERE c1 > 2;",
+				},
+			},
+		},
+		{
+			name: "CREATE VIEW WITH ALGORITHM AND DEFINER",
+			form: forms.ExtractTablesForm{
+				SqlText:   "CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_F_players` AS select `PLAYERS`.`PLAYERNO`,`PLAYERS`.`NAME`,`PLAYERS`.`SEX`,`PLAYERS`.`PHONENO` from `PLAYERS` where (`PLAYERS`.`SEX` = 'F') WITH CASCADED CHECK OPTION;",
+				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
+			},
+			wantRes: []ReturnData{
+				{
+					Tables: []string{
+						"v_f_players",
+						"PLAYERS",
+					},
+					Type:  "CREATE VIEW",
+					Query: "CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_F_players` AS select `PLAYERS`.`PLAYERNO`,`PLAYERS`.`NAME`,`PLAYERS`.`SEX`,`PLAYERS`.`PHONENO` from `PLAYERS` where (`PLAYERS`.`SEX` = 'F') WITH CASCADED CHECK OPTION;",
+				},
+			},
+		},
+		{
+			name: "SIMPLE DROP VIEW",
+			form: forms.ExtractTablesForm{
+				SqlText:   "drop view db1.v1;",
+				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
+			},
+			wantRes: []ReturnData{
+				{
+					Tables: []string{
+						"v1",
+					},
+					// 因为create table和create view已经区分出来了, 所以drop也应该区分
+					Type:  "DROP VIEW",
+					Query: "drop view db1.v1;",
+				},
+			},
+		},
+		{
+			name: "REPLACE",
+			form: forms.ExtractTablesForm{
+				SqlText:   "REPLACE INTO t1 (id, c1) VALUES(3, 99);",
+				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
+			},
+			wantRes: []ReturnData{
+				{
+					Tables: []string{
+						"t1",
+					},
+					Type:  "REPLACE",
+					Query: "REPLACE INTO t1 (id, c1) VALUES(3, 99);",
+				},
+			},
+		},
+		{
+			name: "CREATE INDEX",
+			form: forms.ExtractTablesForm{
+				SqlText:   "CREATE INDEX idx1 ON t1 ((col1 + col2));",
+				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
+			},
+			wantRes: []ReturnData{
+				{
+					Tables: []string{
+						"t1",
+					},
+					Type:  "CREATE INDEX",
+					Query: "CREATE INDEX idx1 ON t1 ((col1 + col2));",
+				},
+			},
+		},
+		{
+			name: "DROP INDEX",
+			form: forms.ExtractTablesForm{
+				SqlText:   "DROP INDEX `PRIMARY` ON t;",
+				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
+			},
+			wantRes: []ReturnData{
+				{
+					Tables: []string{
+						"t",
+					},
+					Type:  "DROP INDEX",
+					Query: "DROP INDEX `PRIMARY` ON t;",
+				},
+			},
+		},
+		{
+			name: "ALTER TABLE",
+			form: forms.ExtractTablesForm{
+				SqlText:   "ALTER TABLE t1 RENAME COLUMN a TO b, RENAME COLUMN b TO a;",
+				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
+			},
+			wantRes: []ReturnData{
+				{
+					Tables: []string{
+						"t1",
+					},
+					Type:  "ALTER TABLE",
+					Query: "ALTER TABLE t1 RENAME COLUMN a TO b, RENAME COLUMN b TO a;",
+				},
+			},
+		},
+		{
+			name: "TRUNCATE TABLE",
+			form: forms.ExtractTablesForm{
+				SqlText:   "truncate table t1",
+				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
+			},
+			wantRes: []ReturnData{
+				{
+					Tables: []string{
+						"t1",
+					},
+					Type:  "TRUNCATE TABLE",
+					Query: "truncate table t1",
 				},
 			},
 		},
@@ -245,6 +420,72 @@ func TestChecker_Extract(t *testing.T) {
 				return
 			}
 			assert.Equal(t, tt.wantRes, res)
+		})
+	}
+}
+
+func Test_removeElement(t *testing.T) {
+	type args struct {
+		org         []string
+		toBeRemoved []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "simple",
+			args: args{
+				org:         []string{"t1", "t2"},
+				toBeRemoved: []string{"t2"},
+			},
+			want: []string{"t1"},
+		},
+		{
+			name: "toBeRemoved比org多",
+			args: args{
+				org:         []string{"t1", "t2"},
+				toBeRemoved: []string{"t2", "t8", "t9"},
+			},
+			want: []string{"t1"},
+		},
+		{
+			name: "org is empty",
+			args: args{
+				org:         []string{},
+				toBeRemoved: []string{"t2", "t8", "t9"},
+			},
+			want: []string{},
+		},
+		{
+			name: "toBeRemoved is empty",
+			args: args{
+				org:         []string{"t1", "t2"},
+				toBeRemoved: []string{},
+			},
+			want: []string{"t1", "t2"},
+		},
+		{
+			name: "org is nil",
+			args: args{
+				org:         nil,
+				toBeRemoved: []string{"t2", "t8", "t9"},
+			},
+			want: nil,
+		},
+		{
+			name: "toBeRemoved is nil",
+			args: args{
+				org:         []string{"t1", "t2"},
+				toBeRemoved: nil,
+			},
+			want: []string{"t1", "t2"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, removeElement(tt.args.org, tt.args.toBeRemoved), "removeElement(%v, %v)", tt.args.org, tt.args.toBeRemoved)
 		})
 	}
 }
