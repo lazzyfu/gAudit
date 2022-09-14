@@ -109,7 +109,24 @@ func TestRuleDML(t *testing.T) {
 			},
 		},
 		{
-			name: "是否允许INSERT INTO SELECT语法",
+			name: "检查表是否存在",
+			form: forms.SyntaxAuditForm{
+				CustomAuditParams: map[string]interface{}{},
+				SqlText:           "delete from test_case1",
+			},
+			wantRes: []ReturnData{
+				{
+					Summary:      []string{"表或视图`test_case1`不存在"},
+					Level:        "WARN",
+					AffectedRows: 0,
+					Type:         "DML",
+					FingerId:     "3709CBCBC14B50C2",
+					Query:        "delete from test_case1",
+				},
+			},
+		},
+		{
+			name: "不允许INSERT INTO SELECT语法",
 			form: forms.SyntaxAuditForm{
 				CustomAuditParams: map[string]interface{}{"DISABLE_INSERT_INTO_SELECT": true},
 				SqlText:           "insert into test_case select 1",
@@ -125,6 +142,23 @@ func TestRuleDML(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "不允许insert/replace into on duplicate语法语法",
+			form: forms.SyntaxAuditForm{
+				CustomAuditParams: map[string]interface{}{"DISABLE_ON_DUPLICATE": true},
+				SqlText:           "insert test_case(`id`, `env`, `cluster_name`) values(3, 'test', 'orc_yy1') ON DUPLICATE KEY UPDATE cluster_name='orc_yy1'",
+			},
+			wantRes: []ReturnData{
+				{
+					Summary:      []string{"禁止使用INSERT into on duplicate语法"},
+					Level:        "WARN",
+					AffectedRows: 0,
+					Type:         "DML",
+					FingerId:     "CB42BF6919EE10DA",
+					Query:        "insert test_case(`id`, `env`, `cluster_name`) values(3, 'test', 'orc_yy1') ON DUPLICATE KEY UPDATE cluster_name='orc_yy1'",
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -137,8 +171,8 @@ func TestRuleDML(t *testing.T) {
 
 			checker := Checker{Form: tt.form}
 			err, res := checker.Check(GetRandomString2(24))
-			// fmt.Println(res)
-			// fmt.Println(tt.wantRes)
+			fmt.Println("实际输出:", res)
+			fmt.Println("预期输出:", tt.wantRes)
 			assert.Equal(t, tt.wantErr, err)
 			if tt.wantErr != nil {
 				// 预期会有错误返回，就不需要进一步校验res了
