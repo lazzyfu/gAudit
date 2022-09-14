@@ -6,7 +6,7 @@ import (
 )
 
 func InitTables() {
-	err := App.DB.AutoMigrate(&models.Config{})
+	err := App.DB.AutoMigrate(&models.TestCase{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
