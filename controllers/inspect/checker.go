@@ -24,6 +24,7 @@ import (
 
 	query "sqlSyntaxAudit/common/query"
 
+	"github.com/jinzhu/copier"
 	"github.com/pingcap/tidb/parser/ast"
 	_ "github.com/pingcap/tidb/types/parser_driver"
 	"github.com/sirupsen/logrus"
@@ -61,8 +62,12 @@ func (c *Checker) InitDB() {
 
 // 动态传参，当前请求传参可覆盖默认配置，仅对当前请求生效
 func (c *Checker) CustomParams() error {
-	// 赋值给新变量
-	c.AuditConfig = *global.App.AuditConfig
+	// 赋值给新变量，使用copier进行深copy，会一层一层进行copy
+	err := copier.CopyWithOption(&c.AuditConfig, global.App.AuditConfig, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+	if err != nil {
+		return fmt.Errorf("审核参数解析错误`%s`不存在", err)
+	}
+
 	// 判断传入是否为空
 	if len(c.Form.CustomAuditParams) == 0 {
 		return nil

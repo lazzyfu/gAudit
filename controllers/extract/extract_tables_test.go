@@ -2,12 +2,13 @@ package extract
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"sqlSyntaxAudit/config"
 	"sqlSyntaxAudit/forms"
 	"sqlSyntaxAudit/global"
 	logger "sqlSyntaxAudit/middleware/log"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {
@@ -36,6 +37,20 @@ func TestChecker_Extract(t *testing.T) {
 					Tables: []string{"t1"},
 					Type:   "SELECT",
 					Query:  "select * from t1",
+				},
+			},
+		},
+		{
+			name: "UNION查询",
+			form: forms.ExtractTablesForm{
+				SqlText:   "select id,name from t1 union select id,name from t2 union select id,name from (select * from t3 where id > 1) as xx",
+				RequestID: "78c25a06-3b34-4ecb-b9dd-7197078873c7",
+			},
+			wantRes: []ReturnData{
+				{
+					Tables: []string{"t1", "t2", "t3"},
+					Type:   "SELECT",
+					Query:  "select id,name from t1 union select id,name from t2 union select id,name from (select * from t3 where id > 1) as xx",
 				},
 			},
 		},
