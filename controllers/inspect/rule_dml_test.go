@@ -143,7 +143,7 @@ func TestRuleDML(t *testing.T) {
 			},
 		},
 		{
-			name: "不允许insert/replace into on duplicate语法语法",
+			name: "禁止使用insert/replace into on duplicate语法",
 			form: forms.SyntaxAuditForm{
 				CustomAuditParams: map[string]interface{}{"DISABLE_ON_DUPLICATE": true},
 				SqlText:           "insert test_case(`id`, `env`, `cluster_name`) values(3, 'test', 'orc_yy1') ON DUPLICATE KEY UPDATE cluster_name='orc_yy1'",
@@ -159,6 +159,110 @@ func TestRuleDML(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "必须要有WHERE条件",
+			form: forms.SyntaxAuditForm{
+				CustomAuditParams: map[string]interface{}{"DML_MUST_HAVE_WHERE": true},
+				SqlText:           "delete from test_case",
+			},
+			wantRes: []ReturnData{
+				{
+					Summary:      []string{"DELETE语句必须要有where条件"},
+					Level:        "WARN",
+					AffectedRows: 0,
+					Type:         "DML",
+					FingerId:     "E393A788EEE49DAC",
+					Query:        "delete from test_case",
+				},
+			},
+		},
+		{
+			name: "INSERT必须指定列名",
+			form: forms.SyntaxAuditForm{
+				CustomAuditParams: map[string]interface{}{},
+				SqlText:           "insert into test_case values(11, 'prod')",
+			},
+			wantRes: []ReturnData{
+				{
+					Summary:      []string{"INSERT语句必须指定列名"},
+					Level:        "WARN",
+					AffectedRows: 1,
+					Type:         "DML",
+					FingerId:     "46D9D1241204A3F9",
+					Query:        "insert into test_case values(11, 'prod')",
+				},
+			},
+		},
+		{
+			name: "不能有LIMIT/ORDERBY/SubQuery",
+			form: forms.SyntaxAuditForm{
+				CustomAuditParams: map[string]interface{}{"DML_DISABLE_LIMIT": true, "DML_DISABLE_ORDERBY": true, "DML_DISABLE_SUBQUERY": true},
+				SqlText:           "update test_case set env='prod' where id in (select * from test_case where promotion_rule='neutral' order by id desc limit 1)",
+			},
+			wantRes: []ReturnData{
+				{
+					Summary: []string{"语句不能有LIMIT子句",
+						"语句不能有ORDER BY子句",
+						"语句不能有子查询"},
+					Level:        "WARN",
+					AffectedRows: 0,
+					Type:         "DML",
+					FingerId:     "ECEFA1CD9ADDACF6",
+					Query:        "update test_case set env='prod' where id in (select * from test_case where promotion_rule='neutral' order by id desc limit 1)",
+				},
+			},
+		},
+		{
+			name: "JOIN操作必须要有ON语句",
+			form: forms.SyntaxAuditForm{
+				CustomAuditParams: map[string]interface{}{"CHECK_DML_JOIN_WITH_ON": true},
+				SqlText:           "update test_case a join (select id from (select id from test_case) as x) b  set a.promotion_rule='neutral' where a.id = 2",
+			},
+			wantRes: []ReturnData{
+				{
+					Summary:      []string{"UPDATE语句的JOIN操作必须要有ON条件"},
+					Level:        "WARN",
+					AffectedRows: 0,
+					Type:         "DML",
+					FingerId:     "620E812FAD3531A1",
+					Query:        "update test_case a join (select id from (select id from test_case) as x) b  set a.promotion_rule='neutral' where a.id = 2",
+				},
+			},
+		},
+		{
+			name: "更新影响行数",
+			form: forms.SyntaxAuditForm{
+				CustomAuditParams: map[string]interface{}{"MAX_AFFECTED_ROWS": 2},
+				SqlText:           "update test_case set promotion_rule='neutral' where id > 0",
+			},
+			wantRes: []ReturnData{
+				{
+					Summary:      []string{"当前UPDATE语句最大影响或扫描行数超过了最大允许值2【建议:您可以将语句拆分为多条,保证每条语句影响或扫描行数小于最大允许值2】"},
+					Level:        "WARN",
+					AffectedRows: 3,
+					Type:         "DML",
+					FingerId:     "D3C813C4D2266C6B",
+					Query:        "update test_case set promotion_rule='neutral' where id > 0",
+				},
+			},
+		},
+		{
+			name: "插入影响行数",
+			form: forms.SyntaxAuditForm{
+				CustomAuditParams: map[string]interface{}{"MAX_INSERT_ROWS": 2},
+				SqlText:           "insert into test_case(id, env, cluster_name) values(11,'prod', 'c1'),(12,'prod', 'c2'),(13,'prod', 'c3')",
+			},
+			wantRes: []ReturnData{
+				{
+					Summary:      []string{"INSERT语句单次最多允许的行数为2,当前行数为3【建议拆分为多条INSERT语句】"},
+					Level:        "WARN",
+					AffectedRows: 3,
+					Type:         "DML",
+					FingerId:     "3AA98E1795B73B1B",
+					Query:        "insert into test_case(id, env, cluster_name) values(11,'prod', 'c1'),(12,'prod', 'c2'),(13,'prod', 'c3')",
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -171,8 +275,8 @@ func TestRuleDML(t *testing.T) {
 
 			checker := Checker{Form: tt.form}
 			err, res := checker.Check(GetRandomString2(24))
-			fmt.Println("实际输出:", res)
-			fmt.Println("预期输出:", tt.wantRes)
+			// fmt.Println("实际输出:", res)
+			// fmt.Println("预期输出:", tt.wantRes)
 			assert.Equal(t, tt.wantErr, err)
 			if tt.wantErr != nil {
 				// 预期会有错误返回，就不需要进一步校验res了
