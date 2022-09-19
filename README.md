@@ -118,10 +118,5 @@ curl --location --request POST '127.0.0.1:8081/api/v1/extract-tables' \
 }
 ```
 
-## 贡献者
-
-<!-- readme: collaborators,contributors -start -->
-<!-- readme: collaborators,contributors -end -->
-
 ## 致谢
 - [PingCAP](https://github.com/pingcap/tidb/tree/master/parser)
