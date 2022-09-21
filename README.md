@@ -121,7 +121,7 @@ curl --location --request POST '127.0.0.1:8081/api/v1/extract-tables' \
 ### Python调用接口模板
 > 请根据自己的需求进行封装改造即可
 
-`template/python_api.py`
+文件位置`template/python_api.py`
 
 
 ## 致谢
