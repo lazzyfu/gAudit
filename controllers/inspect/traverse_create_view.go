@@ -12,11 +12,14 @@ import (
 
 // TraverseCreateViewIsExist
 type TraverseCreateViewIsExist struct {
-	View string // 视图
+	View      string   // 视图名
+	OrReplace bool     // 是否为replace语句
+	Tables    []string // 表名
 }
 
 func (c *TraverseCreateViewIsExist) Enter(in ast.Node) (ast.Node, bool) {
 	if stmt, ok := in.(*ast.CreateViewStmt); ok {
+		c.OrReplace = stmt.OrReplace
 		c.View = stmt.ViewName.Name.String()
 	}
 	return in, false

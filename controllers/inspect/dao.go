@@ -7,10 +7,12 @@
 package inspect
 
 import (
+	"errors"
 	"fmt"
 	"sqlSyntaxAudit/common/kv"
 	"sqlSyntaxAudit/common/utils"
 	"sqlSyntaxAudit/controllers/parser"
+	"strconv"
 	"strings"
 
 	mysqlapi "github.com/go-sql-driver/mysql"
@@ -54,7 +56,7 @@ func ShowCreateTable(table string, db *utils.DB, kv *kv.KVCache) (data interface
 
 // descTable
 func DescTable(table string, db *utils.DB) (error, string) {
-	// 检查表是否存在
+	// 检查表是否存在，适用于确认当前实例当前库的表
 	err := db.Exec(fmt.Sprintf("desc `%s`", table))
 	if me, ok := err.(*mysqlapi.MySQLError); ok {
 		if me.Number == 1146 {
@@ -64,6 +66,26 @@ func DescTable(table string, db *utils.DB) (error, string) {
 			return err, fmt.Sprintf("访问目标数据库%s:%d失败,%s", db.Host, db.Port, err.Error())
 		}
 	}
+	return nil, fmt.Sprintf("表或视图`%s`已经存在", table)
+}
+
+// verifyTable
+func VerifyTable(table string, db *utils.DB) (error, string) {
+	// 通过information_schema.tables检查表是否存在，适用于确认当前实例跨库的表
+	result, err := db.FetchRows(fmt.Sprintf("select count(*) as count from information_schema.tables where table_name='%s'", table))
+	if err != nil {
+		return err, fmt.Sprintf("执行SQL失败,主机:%s:%d,错误:%s", db.Host, db.Port, err.Error())
+	}
+	var count int
+	for _, row := range *result {
+		count, _ = strconv.Atoi(row["count"].(string))
+		break
+	}
+	if count == 0 {
+		// 表不存在
+		return errors.New("error"), fmt.Sprintf("表或视图`%s`不存在", table)
+	}
+	// 表存在
 	return nil, fmt.Sprintf("表或视图`%s`已经存在", table)
 }
 
