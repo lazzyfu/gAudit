@@ -8,6 +8,7 @@ package inspect
 
 import (
 	"fmt"
+	"strings"
 )
 
 // LogicCreateViewIsExist
@@ -17,9 +18,21 @@ func LogicCreateViewIsExist(v *TraverseCreateViewIsExist, r *Rule) {
 		r.IsSkipNextStep = true
 		return
 	}
-	// 检查视图是否存在,如果视图存在,skip下面的检查
-	if err, msg := DescTable(v.View, r.DB); err == nil {
-		r.Summary = append(r.Summary, msg)
-		r.IsSkipNextStep = true
+	if !v.OrReplace {
+		// create view，需要确保视图不存在
+		if err, msg := DescTable(v.View, r.DB); err == nil {
+			newMsg := strings.Join([]string{msg, "【TiDB可以使用`CREATE OR REPLACE VIEW`语法】"}, "")
+			r.Summary = append(r.Summary, newMsg)
+			r.IsSkipNextStep = true
+		}
+	}
+	for _, table := range v.Tables {
+		// 检查除视图名外的表是否存在
+		if v.View != table {
+			if err, msg := VerifyTable(table, r.DB); err != nil {
+				r.Summary = append(r.Summary, msg)
+				r.IsSkipNextStep = true
+			}
+		}
 	}
 }
