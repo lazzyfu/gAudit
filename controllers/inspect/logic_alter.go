@@ -100,6 +100,43 @@ func LogicAlterTableDropColsOrIndexes(v *TraverseAlterTableDropColsOrIndexes, r 
 	}
 }
 
+// LogicAlterTableDropTiDBColWithCoveredIndex
+func LogicAlterTableDropTiDBColWithCoveredIndex(v *TraverseAlterTableDropTiDBColWithCoveredIndex, r *Rule) {
+	// TiDB目前不支持删除主键列或组合索引相关列。
+	dbVersionIns := process.DbVersion{Version: r.KV.Get("dbVersion").(string)}
+	if !dbVersionIns.IsTiDB() {
+		return
+	}
+	if v.IsMatch == 0 {
+		return
+	}
+	r.MergeAlter = v.Table
+
+	// 获取db表结构
+	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
+	if err != nil {
+		r.Summary = append(r.Summary, err.Error())
+		return
+	}
+	// 解析获取的db表结构
+	vAduit := &TraverseCreateTableRedundantIndexes{}
+	switch audit := audit.(type) {
+	case *config.Audit:
+		(audit.TiStmt[0]).Accept(vAduit)
+	}
+
+	for _, col := range v.Cols {
+		for _, item := range vAduit.Redundant.IndexesCols {
+			if len(item.Cols) > 1 {
+				if utils.IsContain(item.Cols, col) {
+					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`DROP列`%s`操作失败,无法删除包含组合索引的列,当前列已经被组合索引%s(%s)覆盖【TiDB目前不支持删除主键列或组合索引相关列,请先删除复合索引`%s`】", v.Table, col, item.Index, strings.Join(item.Cols, ","), item.Index))
+				}
+			}
+		}
+	}
+
+}
+
 // LogicAlterTableOptions
 func LogicAlterTableOptions(v *TraverseAlterTableOptions, r *Rule) {
 	if v.IsMatch == 0 {

@@ -25,6 +25,10 @@ func AlterTableRules() []Rule {
 			CheckFunc: (*Rule).RuleAlterTableDropColsOrIndexes,
 		},
 		{
+			Hint:      "AlterTable#DropTiDBColWithCoveredIndex检查",
+			CheckFunc: (*Rule).RuleAlterTableDropTiDBColWithCoveredIndex,
+		},
+		{
 			Hint:      "AlterTable#表Options检查",
 			CheckFunc: (*Rule).RuleAlterTableOptions,
 		},
@@ -102,6 +106,13 @@ func (r *Rule) RuleAlterTableDropColsOrIndexes(tistmt *ast.StmtNode) {
 	v := &TraverseAlterTableDropColsOrIndexes{}
 	(*tistmt).Accept(v)
 	LogicAlterTableDropColsOrIndexes(v, r)
+}
+
+// RuleAlterTableDropTiDBColWithCoveredIndex
+func (r *Rule) RuleAlterTableDropTiDBColWithCoveredIndex(tistmt *ast.StmtNode) {
+	v := &TraverseAlterTableDropTiDBColWithCoveredIndex{}
+	(*tistmt).Accept(v)
+	LogicAlterTableDropTiDBColWithCoveredIndex(v, r)
 }
 
 // RuleAlterTableOptions
