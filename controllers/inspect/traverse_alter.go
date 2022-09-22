@@ -76,6 +76,31 @@ func (c *TraverseAlterTableDropColsOrIndexes) Leave(in ast.Node) (ast.Node, bool
 	return in, true
 }
 
+// TraverseAlterTableDropTiDBColWithCoveredIndex
+type TraverseAlterTableDropTiDBColWithCoveredIndex struct {
+	Table   string   // 表名
+	IsMatch int      // 是否匹配当前规则
+	Cols    []string // 列
+}
+
+func (c *TraverseAlterTableDropTiDBColWithCoveredIndex) Enter(in ast.Node) (ast.Node, bool) {
+	if stmt, ok := in.(*ast.AlterTableStmt); ok {
+		c.Table = stmt.Table.Name.String()
+		for _, spec := range stmt.Specs {
+			switch spec.Tp {
+			case ast.AlterTableDropColumn:
+				c.IsMatch++
+				c.Cols = append(c.Cols, spec.OldColumnName.Name.O)
+			}
+		}
+	}
+	return in, false
+}
+
+func (c *TraverseAlterTableDropTiDBColWithCoveredIndex) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}
+
 // TraverseAlterTableOptions
 type TraverseAlterTableOptions struct {
 	IsMatch int // 是否匹配当前规则
