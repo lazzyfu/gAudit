@@ -220,6 +220,10 @@ func CheckColsTypeChanged(col ColOptions, vCol ColOptions, auditConfig *config.A
 			if bytes.IndexByte(stringTp, col.Tp) < bytes.IndexByte(stringTp, vCol.Tp) {
 				return fmt.Errorf("列`%s`不允许变更数据类型(%s -> %s)[表`%s`]%s", oriColumn, stringMap[vCol.Tp], stringMap[col.Tp], table, tidbTips)
 			}
+		} else {
+			if col.Tp != vCol.Tp {
+				return fmt.Errorf("列`%s`不允许变更数据类型[表`%s`]", col.Column, table)
+			}
 		}
 		return nil
 	}
@@ -236,7 +240,8 @@ func CheckColsTypeChanged(col ColOptions, vCol ColOptions, auditConfig *config.A
 			if auditConfig.ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE {
 				// 启用兼容模式
 				return funcCheck()
-			} else {
+			}
+			if !auditConfig.ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE {
 				// 禁用兼容模式
 				if col.Tp != vCol.Tp {
 					return fmt.Errorf("列`%s`不允许变更数据类型[表`%s`]", col.Column, table)
