@@ -7,7 +7,9 @@
 package process
 
 import (
+	"bytes"
 	"fmt"
+	"sqlSyntaxAudit/common/kv"
 	"sqlSyntaxAudit/common/utils"
 	"sqlSyntaxAudit/config"
 	"strconv"
@@ -167,6 +169,85 @@ func (c *ColOptions) CheckColumnDefaultValue() error {
 	// 有默认值，配置了无效的默认值，如default current_timestamp
 	if c.HasDefaultValue && !(c.Tp == mysql.TypeTimestamp || c.Tp == mysql.TypeDatetime) && c.DefaultValue == "current_timestamp" {
 		return fmt.Errorf("列`%s`配置了无效的默认值(default current_timestamp)[表`%s`]", c.Column, c.Table)
+	}
+	return nil
+}
+
+// CheckColsTypeChanged
+func CheckColsTypeChanged(col ColOptions, vCol ColOptions, auditConfig *config.AuditConfiguration, kv *kv.KVCache, tp string, table string) error {
+	// tp = modify or change
+	var oriColumn string
+	if tp == "modify" {
+		oriColumn = col.Column
+	}
+	if tp == "change" {
+		oriColumn = col.OldColumn
+	}
+	// 检查change的列是否进行列类型变更
+	intMap := map[byte]string{
+		mysql.TypeTiny:     "tinyint",
+		mysql.TypeShort:    "smallint",
+		mysql.TypeLong:     "int",
+		mysql.TypeInt24:    "mediumint",
+		mysql.TypeLonglong: "bigint",
+	}
+	intTp := []byte{mysql.TypeTiny, mysql.TypeShort, mysql.TypeLong, mysql.TypeInt24, mysql.TypeLonglong}
+
+	stringMap := map[byte]string{
+		mysql.TypeString:  "char",
+		mysql.TypeVarchar: "varchar",
+	}
+	stringTp := []byte{mysql.TypeString, mysql.TypeVarchar}
+
+	// DB版本
+	dbVersionIns := DbVersion{Version: kv.Get("dbVersion").(string)}
+
+	// 匿名函数
+	funcCheck := func() error {
+		// 开启了兼容变更模式，适用于tidb和mysql
+		// 允许同一类型，不同长度变更且变更后的长度必须大于变更前的长度
+		// 允许操作: tinyint-> int、int->bigint、char->varchar ...
+		// 不允许操作：int -> tinyint、varchar -> char ...
+		var tidbTips string
+		if dbVersionIns.IsTiDB() {
+			tidbTips = "(TiDB不支持当前数据类型变更)"
+		}
+		if utils.IsByteContain(intTp, col.Tp) && utils.IsByteContain(intTp, vCol.Tp) {
+			if bytes.IndexByte(intTp, col.Tp) < bytes.IndexByte(intTp, vCol.Tp) {
+				return fmt.Errorf("列`%s`不允许变更数据类型(%s -> %s)[表`%s`]%s", oriColumn, intMap[vCol.Tp], intMap[col.Tp], table, tidbTips)
+			}
+		} else if utils.IsByteContain(stringTp, col.Tp) && utils.IsByteContain(stringTp, vCol.Tp) {
+			if bytes.IndexByte(stringTp, col.Tp) < bytes.IndexByte(stringTp, vCol.Tp) {
+				return fmt.Errorf("列`%s`不允许变更数据类型(%s -> %s)[表`%s`]%s", oriColumn, stringMap[vCol.Tp], stringMap[col.Tp], table, tidbTips)
+			}
+		} else {
+			if col.Tp != vCol.Tp {
+				return fmt.Errorf("列`%s`不允许变更数据类型[表`%s`]", col.Column, table)
+			}
+		}
+		return nil
+	}
+
+	if oriColumn == vCol.Column {
+		if auditConfig.ENABLE_COLUMN_TYPE_CHANGE {
+			// 允许列类型变更，不检查MySQL，仅检查TiDB
+			if dbVersionIns.IsTiDB() {
+				return funcCheck()
+			}
+		} else {
+			// 不允许列类型变更
+			// 当ENABLE_COLUMN_TYPE_CHANGE = false时，ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE生效
+			if auditConfig.ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE {
+				// 启用兼容模式
+				return funcCheck()
+			}
+			if !auditConfig.ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE {
+				// 禁用兼容模式
+				if col.Tp != vCol.Tp {
+					return fmt.Errorf("列`%s`不允许变更数据类型[表`%s`]", col.Column, table)
+				}
+			}
+		}
 	}
 	return nil
 }

@@ -39,7 +39,7 @@ func LogicAlterTableTiDBMerge(v *TraverseAlterTiDBMerge, r *Rule) {
 	dbVersionIns := process.DbVersion{Version: r.KV.Get("dbVersion").(string)}
 	if !r.AuditConfig.ENABLE_TIDB_MERGE_ALTER_TABLE && dbVersionIns.IsTiDB() {
 		if v.SpecsLen > 1 {
-			r.Summary = append(r.Summary, fmt.Sprintf("[TiDB数据库]表`%s`的多条ALTER操作,请拆分为多条ALTER语句", v.Table))
+			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`的多个操作,请拆分为多条ALTER语句(TiDB不支持在单个ALTER TABLE语句中进行多个更改)", v.Table))
 		}
 	}
 }
@@ -435,15 +435,10 @@ func LogicAlterTableModifyColOptions(v *TraverseAlterTableModifyColOptions, r *R
 		}
 	}
 	// 检查modify的列是否进行列类型变更
-	if !r.AuditConfig.ENABLE_COLUMN_TYPE_CHANGE {
-		// 不允许列类型变更
-		for _, col := range v.Cols {
-			for _, vCol := range vAduit.Cols {
-				if col.Column == vCol.Column {
-					if col.Tp != vCol.Tp {
-						r.Summary = append(r.Summary, fmt.Sprintf("列`%s`不允许变更数据类型[表`%s`]", col.Column, v.Table))
-					}
-				}
+	for _, col := range v.Cols {
+		for _, vCol := range vAduit.Cols {
+			if err := process.CheckColsTypeChanged(col, vCol, r.AuditConfig, r.KV, "modify", v.Table); err != nil {
+				r.Summary = append(r.Summary, err.Error())
 			}
 		}
 	}
@@ -468,15 +463,17 @@ func LogicAlterTableModifyColOptions(v *TraverseAlterTableModifyColOptions, r *R
 
 // LogicAlterTableChangeColOptions
 func LogicAlterTableChangeColOptions(v *TraverseAlterTableChangeColOptions, r *Rule) {
+	/*
+		change操作的2种用法
+		修改列的类型信息
+			> ALTER TABLE 【表名字】 CHANGE 【列名称】【列名称】 BIGINT NOT NULL  COMMENT '注释说明'
+		修改列名+修改列类型信息
+			> ALTER TABLE 【表名字】 CHANGE 【列名称】【新列名称】 BIGINT NOT NULL  COMMENT '注释说明'
+	*/
 	if v.IsMatch == 0 {
 		return
 	}
 	r.MergeAlter = v.Table
-
-	if !r.AuditConfig.ENABLE_COLUMN_CHANGE && len(v.Cols) > 0 {
-		r.Summary = append(r.Summary, fmt.Sprintf("禁止CHANGE操作[表`%s`]", v.Table))
-		return
-	}
 	// 获取db表结构
 	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
 	if err != nil {
@@ -493,28 +490,40 @@ func LogicAlterTableChangeColOptions(v *TraverseAlterTableChangeColOptions, r *R
 	for _, vCol := range vAduit.Cols {
 		vCols = append(vCols, vCol.Column)
 	}
-	// 检查change的列是否存在
+	// 判断change操作是否为修改列名操作
 	for _, col := range v.Cols {
-		if !utils.IsContain(vCols, col.OldColumn) {
-			r.Summary = append(r.Summary, fmt.Sprintf("原列`%s`不存在[表`%s`]", col.OldColumn, v.Table))
-		}
-		if utils.IsContain(vCols, col.Column) {
-			r.Summary = append(r.Summary, fmt.Sprintf("新列`%s`已经存在[表`%s`]", col.Column, v.Table))
+		if col.Column != col.OldColumn {
+			// 不允许change列名操作
+			if !r.AuditConfig.ENABLE_COLUMN_CHANGE_COLUMN_NAME && len(v.Cols) > 0 {
+				r.Summary = append(r.Summary, fmt.Sprintf("禁止CHANGE修改列名操作(`%s` -> `%s`)[表`%s`]", col.OldColumn, col.Column, v.Table))
+				return
+			}
+			// 允许change列名操作,检查change的列是否存在
+			if !utils.IsContain(vCols, col.OldColumn) {
+				r.Summary = append(r.Summary, fmt.Sprintf("原列`%s`不存在[表`%s`]", col.OldColumn, v.Table))
+			}
+			if utils.IsContain(vCols, col.Column) {
+				r.Summary = append(r.Summary, fmt.Sprintf("新列`%s`已经存在[表`%s`]", col.Column, v.Table))
+			}
+		} else {
+			// 允许change列名操作,检查change的列是否存在
+			if !utils.IsContain(vCols, col.OldColumn) {
+				r.Summary = append(r.Summary, fmt.Sprintf("原列`%s`不存在[表`%s`]", col.OldColumn, v.Table))
+			}
 		}
 	}
+
 	// 检查change的列是否进行列类型变更
-	if !r.AuditConfig.ENABLE_COLUMN_TYPE_CHANGE {
-		// 不允许列类型变更
-		for _, col := range v.Cols {
-			for _, vCol := range vAduit.Cols {
-				if col.OldColumn == vCol.Column {
-					if col.Tp != vCol.Tp {
-						r.Summary = append(r.Summary, fmt.Sprintf("列`%s`不允许变更数据类型[表`%s`]", col.OldColumn, v.Table))
-					}
+	for _, col := range v.Cols {
+		for _, vCol := range vAduit.Cols {
+			if col.OldColumn == vCol.Column {
+				if err := process.CheckColsTypeChanged(col, vCol, r.AuditConfig, r.KV, "change", v.Table); err != nil {
+					r.Summary = append(r.Summary, err.Error())
 				}
 			}
 		}
 	}
+
 	// 检查列
 	for _, col := range v.Cols {
 		col.AuditConfig = r.AuditConfig

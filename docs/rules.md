@@ -38,7 +38,8 @@
 | N/A                                  | 检查drop的列是否存在                          |
 | ENABLE_DROP_PRIMARYKEY               | 是否允许DROP主键                              |
 | ENABLE_COLUMN_TYPE_CHANGE            | 是否允许变更数据类型                          |
-| ENABLE_COLUMN_CHANGE                 | 是否禁止CHANGE操作                            |
+| ENABLE_COLUMN_CHANGE_COLUMN_NAME                 | 是否禁止CHANGE操作                            |
+| ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE                 | 是否开启change列类型兼容模式                            |
 | ENABLE_INDEX_RENAME                  | 是否允许RENAME INDEX操作                      |
 | ENABLE_RENAME_TABLE_NAME             | 是否允许RENAME表名                            |
 | ENABLE_DROP_TABLE                    | 是否允许DROP表                                |
