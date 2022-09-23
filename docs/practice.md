@@ -8,6 +8,9 @@
     - [参数](#参数-1)
       - [CHECK_TABLE_AUDIT_TYPE_COLUMNS](#check_table_audit_type_columns)
   - [限制指定的表进行DDL/DML语法审核](#限制指定的表进行ddldml语法审核)
+  - [启用列类型变更兼容模式](#启用列类型变更兼容模式)
+    - [控制参数](#控制参数)
+    - [应用场景](#应用场景)
 ## 最佳实践
 ### 自定义NOT NULL
 #### 参数
@@ -90,3 +93,24 @@ remark text comment '备注'
   }
 ],
 ```
+
+### 启用列类型变更兼容模式
+tidb默认不支持数据类型变更，但是允许同一类型，不同长度变更且变更后的长度必须大于变更前的长度
+允许操作: tinyint-> int、int->bigint、char->varchar ...
+不允许操作：int -> tinyint、varchar -> char ...
+
+#### 控制参数
+* ENABLE_COLUMN_TYPE_CHANGE
+* ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE
+
+#### 应用场景
+> 仅当参数ENABLE_COLUMN_TYPE_CHANGE=false时，ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE才生效
+
+不允许修改数据类型：char -> int 、tinyint -> enum ...
+允许操作：tinyint-> int、char->varchar ...
+
+```bash
+ENABLE_COLUMN_TYPE_CHANGE: false
+ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE: true
+````
+

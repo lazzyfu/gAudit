@@ -38,7 +38,8 @@
     - [CHECK_COLUMN_DEFAULT_VALUE](#check_column_default_value)
     - [CHECK_COLUMN_FLOAT_DOUBLE](#check_column_float_double)
     - [ENABLE_COLUMN_TYPE_CHANGE](#enable_column_type_change)
-    - [ENABLE_COLUMN_CHANGE](#enable_column_change)
+    - [ENABLE_COLUMN_CHANGE_COLUMN_NAME](#enable_column_change_column_name)
+    - [ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE](#enable_column_type_change_compatible)
     - [CHECK_UNIQ_INDEX_PREFIX](#check_uniq_index_prefix)
     - [CHECK_SECONDARY_INDEX_PREFIX](#check_secondary_index_prefix)
     - [CHECK_FULLTEXT_INDEX_PREFIX](#check_fulltext_index_prefix)
@@ -272,8 +273,13 @@ UPDATED_AT datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTA
 默认值: false
 可选值: true/false
 
-#### ENABLE_COLUMN_CHANGE
-描述: 是否允许CHANGE操作
+#### ENABLE_COLUMN_CHANGE_COLUMN_NAME
+描述: 是否允许CHANGE列名操作
+默认值: false
+可选值: true/false
+
+#### ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE
+描述: 是否开启CHANGE列类型兼容模式；开启后，允许同一类型，不同长度变更且变更后的长度必须大于变更前的长度的操作。允许操作举例: tinyint-> int、int->bigint、char->varchar 不允许操作举例：int -> tinyint、varchar -> char。ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE设置为true的同时需要设置ENABLE_COLUMN_TYPE_CHANGE=false才生效。
 默认值: false
 可选值: true/false
 

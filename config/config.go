@@ -50,24 +50,25 @@ type AuditConfiguration struct {
 	CHECK_TABLE_AUTOINCREMENT_INIT_VALUE bool                // 检查建表是自增列初始值是否为1
 	ENABLE_CREATE_VIEW                   bool                // 是否支持创建和使用视图
 	// COLUMN
-	MAX_COLUMN_NAME_LENGTH              int  // 列名的长度
-	CHECK_COLUMN_CHARSET                bool // 是否检查列的字符集
-	CHECK_COLUMN_COMMENT                bool // 是否检查列的注释
-	COLUMN_MAX_CHAR_LENGTH              int  // char长度大于N的时候需要改为varchar
-	MAX_VARCHAR_LENGTH                  int  // 最大允许定义的varchar长度
-	ENABLE_COLUMN_BLOB_TYPE             bool // 是否允许列的类型为BLOB/TEXT
-	ENABLE_COLUMN_JSON_TYPE             bool // 是否允许列的类型为JSON
-	ENABLE_COLUMN_BIT_TYPE              bool // 是否允许列的类型为BIT
-	ENABLE_COLUMN_TIMESTAMP_TYPE        bool // 是否允许列的类型为TIMESTAMP
-	CHECK_PRIMARYKEY_USE_BIGINT         bool // 主键是否为bigint
-	CHECK_PRIMARYKEY_USE_UNSIGNED       bool // 主键bigint是否为unsigned
-	CHECK_PRIMARYKEY_USE_AUTO_INCREMENT bool // 主键是否定义为自增
-	ENABLE_COLUMN_NOT_NULL              bool // 是否允许列定义为NOT NULL
-	ENABLE_COLUMN_TIME_NULL             bool // 是否允许时间类型设置为NULL
-	CHECK_COLUMN_DEFAULT_VALUE          bool // 列必须要有默认值
-	CHECK_COLUMN_FLOAT_DOUBLE           bool // 将float/double转成int/bigint/decimal等
-	ENABLE_COLUMN_TYPE_CHANGE           bool // 是否允许变更列类型
-	ENABLE_COLUMN_CHANGE                bool // 是否允许CHANGE操作
+	MAX_COLUMN_NAME_LENGTH               int  // 列名的长度
+	CHECK_COLUMN_CHARSET                 bool // 是否检查列的字符集
+	CHECK_COLUMN_COMMENT                 bool // 是否检查列的注释
+	COLUMN_MAX_CHAR_LENGTH               int  // char长度大于N的时候需要改为varchar
+	MAX_VARCHAR_LENGTH                   int  // 最大允许定义的varchar长度
+	ENABLE_COLUMN_BLOB_TYPE              bool // 是否允许列的类型为BLOB/TEXT
+	ENABLE_COLUMN_JSON_TYPE              bool // 是否允许列的类型为JSON
+	ENABLE_COLUMN_BIT_TYPE               bool // 是否允许列的类型为BIT
+	ENABLE_COLUMN_TIMESTAMP_TYPE         bool // 是否允许列的类型为TIMESTAMP
+	CHECK_PRIMARYKEY_USE_BIGINT          bool // 主键是否为bigint
+	CHECK_PRIMARYKEY_USE_UNSIGNED        bool // 主键bigint是否为unsigned
+	CHECK_PRIMARYKEY_USE_AUTO_INCREMENT  bool // 主键是否定义为自增
+	ENABLE_COLUMN_NOT_NULL               bool // 是否允许列定义为NOT NULL
+	ENABLE_COLUMN_TIME_NULL              bool // 是否允许时间类型设置为NULL
+	CHECK_COLUMN_DEFAULT_VALUE           bool // 列必须要有默认值
+	CHECK_COLUMN_FLOAT_DOUBLE            bool // 将float/double转成int/bigint/decimal等
+	ENABLE_COLUMN_TYPE_CHANGE            bool // 是否允许变更列类型
+	ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE bool // 允许tinyint-> int、int->bigint、char->varchar等
+	ENABLE_COLUMN_CHANGE_COLUMN_NAME     bool // 是否允许CHANGE修改列名操作
 	// INDEX
 	CHECK_UNIQ_INDEX_PREFIX       bool   // 是否检查唯一索引前缀,如唯一索引必须以uniq_为前缀
 	CHECK_SECONDARY_INDEX_PREFIX  bool   // 是否检查二级索引前缀,如普通索引必须以idx_为前缀
@@ -145,7 +146,8 @@ func newAuditConfiguration() *AuditConfiguration {
 		CHECK_COLUMN_DEFAULT_VALUE:           true,
 		CHECK_COLUMN_FLOAT_DOUBLE:            true,
 		ENABLE_COLUMN_TYPE_CHANGE:            false,
-		ENABLE_COLUMN_CHANGE:                 false,
+		ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE: true,
+		ENABLE_COLUMN_CHANGE_COLUMN_NAME:     false,
 		CHECK_UNIQ_INDEX_PREFIX:              true,
 		CHECK_SECONDARY_INDEX_PREFIX:         true,
 		CHECK_FULLTEXT_INDEX_PREFIX:          true,
