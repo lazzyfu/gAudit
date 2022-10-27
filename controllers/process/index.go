@@ -167,6 +167,9 @@ func (r *RedundantIndex) CheckRepeatColsWithDiffIndexes() error {
 		// 查找重复的索引,即索引名不一样,但是定义的列一样,不区分大小写
 		// KEY idx_a_b (col1,col2),
 		// KEY idx_b (col1,col2),
+		if item.Tag == "is_drop" {
+			continue
+		}
 		valueJoin := strings.ToLower(strings.Join(item.Cols, utils.KeyJoinChar))
 		if !idxCols[valueJoin] {
 			idxCols[valueJoin] = true
