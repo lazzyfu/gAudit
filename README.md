@@ -1,5 +1,5 @@
 
-# gAduit
+# gAudit
 ![GO](https://img.shields.io/badge/go-1.18-brightgreen.svg?style=flat-square)
 ![Download](https://img.shields.io/github/downloads/lazzyfu/gAudit/total?style=flat-square)
 ![License](https://img.shields.io/github/license/lazzyfu/gAudit?style=flat-square)

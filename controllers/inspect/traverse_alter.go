@@ -387,6 +387,32 @@ func (c *TraverseAlterTableAddIndexCount) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
 
+// TraverseAlterTableAddConstraint
+type TraverseAlterTableAddConstraint struct {
+	Table        string // 表名
+	IsMatch      int    // 是否匹配当前规则
+	IsForeignKey bool   // 是否定义了外键
+}
+
+func (c *TraverseAlterTableAddConstraint) Enter(in ast.Node) (ast.Node, bool) {
+	if stmt, ok := in.(*ast.AlterTableStmt); ok {
+		c.Table = stmt.Table.Name.String()
+		for _, spec := range stmt.Specs {
+			if spec.Tp == ast.AlterTableAddConstraint {
+				c.IsMatch++
+				if spec.Constraint.Tp == ast.ConstraintForeignKey {
+					c.IsForeignKey = true
+				}
+			}
+		}
+	}
+	return in, false
+}
+
+func (c *TraverseAlterTableAddConstraint) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}
+
 // TraverseAlterTableAddIndexRepeatDefine
 type TraverseAlterTableAddIndexRepeatDefine struct {
 	Table   string   // 表名
@@ -695,5 +721,73 @@ func (c *TraverseAlterTableShowCreateTableGetCols) Enter(in ast.Node) (ast.Node,
 }
 
 func (c *TraverseAlterTableShowCreateTableGetCols) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}
+
+// TraverseAlterTableInnodbLargePrefix
+type TraverseAlterTableInnodbLargePrefix struct {
+	IsMatch     int // 是否匹配当前规则
+	LargePrefix process.LargePrefix
+}
+
+func (c *TraverseAlterTableInnodbLargePrefix) Enter(in ast.Node) (ast.Node, bool) {
+	if stmt, ok := in.(*ast.AlterTableStmt); ok {
+		c.LargePrefix.Table = stmt.Table.Name.String()
+		for _, spec := range stmt.Specs {
+			switch spec.Tp {
+			case ast.AlterTableAddConstraint:
+				c.IsMatch++
+				switch spec.Constraint.Tp {
+				case ast.ConstraintKey, ast.ConstraintIndex, ast.ConstraintUniq, ast.ConstraintUniqKey, ast.ConstraintUniqIndex, ast.ConstraintFulltext:
+					var LargePrefixIndexColsMap process.LargePrefixIndexColsMap
+					LargePrefixIndexColsMap.Name = spec.Constraint.Name
+					for _, col := range spec.Constraint.Keys {
+						LargePrefixIndexColsMap.Keys = append(LargePrefixIndexColsMap.Keys,
+							process.LargePrefixIndexPartSpecification{Column: col.Column.Name.L, Ilen: col.Length})
+					}
+					c.LargePrefix.LargePrefixIndexColsMaps = append(c.LargePrefix.LargePrefixIndexColsMaps, LargePrefixIndexColsMap)
+				}
+			}
+		}
+	}
+	return in, false
+}
+
+func (c *TraverseAlterTableInnodbLargePrefix) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}
+
+// TraverseAlterTableRowSizeTooLarge
+type TraverseAlterTableRowSizeTooLarge struct {
+	Table           string // 表名
+	IsMatch         int    // 是否匹配当前规则
+	RowSizeColsMaps []process.RowSizeTooLargePartSpecification
+}
+
+func (c *TraverseAlterTableRowSizeTooLarge) Enter(in ast.Node) (ast.Node, bool) {
+	if stmt, ok := in.(*ast.AlterTableStmt); ok {
+		c.Table = stmt.Table.Name.String()
+		for _, spec := range stmt.Specs {
+			switch spec.Tp {
+			case ast.AlterTableAddColumns, ast.AlterTableModifyColumn, ast.AlterTableChangeColumn:
+				c.IsMatch++
+				for _, col := range spec.NewColumns {
+					c.RowSizeColsMaps = append(c.RowSizeColsMaps,
+						process.RowSizeTooLargePartSpecification{
+							Column:  col.Name.Name.L,
+							Tp:      col.Tp.Tp,
+							Flen:    col.Tp.Flen,
+							Decimal: col.Tp.Decimal,
+							Charset: col.Tp.Charset,
+							Elems:   col.Tp.Elems,
+						})
+				}
+			}
+		}
+	}
+	return in, false
+}
+
+func (c *TraverseAlterTableRowSizeTooLarge) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }

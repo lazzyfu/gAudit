@@ -78,14 +78,14 @@ func LogicDMLInsertWithColumns(v *TraverseDMLInsertWithColumns, r *Rule) {
 		return
 	}
 	// 解析获取的db表结构
-	vAduit := &TraverseAlterTableShowCreateTableGetCols{}
+	vAudit := &TraverseAlterTableShowCreateTableGetCols{}
 	switch audit := audit.(type) {
 	case *config.Audit:
-		(audit.TiStmt[0]).Accept(vAduit)
+		(audit.TiStmt[0]).Accept(vAudit)
 	}
 	// 判断列是否存在
 	for _, col := range v.Columns {
-		if !utils.IsContain(vAduit.Cols, col) {
+		if !utils.IsContain(vAudit.Cols, col) {
 			r.Summary = append(r.Summary, fmt.Sprintf("列`%s`不存在[表`%s`]", col, v.Table))
 		}
 	}

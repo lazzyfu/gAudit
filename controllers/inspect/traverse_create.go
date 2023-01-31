@@ -171,13 +171,13 @@ func (c *TraverseCreateTablePrimaryKey) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
 
-// TraverseCreateTableForeignKey
-type TraverseCreateTableForeignKey struct {
+// TraverseCreateTableConstraint
+type TraverseCreateTableConstraint struct {
 	Table        string // 表名
-	IsForeignKey bool   // 是否启用外键
+	IsForeignKey bool   // 是否定义了外键
 }
 
-func (c *TraverseCreateTableForeignKey) Enter(in ast.Node) (ast.Node, bool) {
+func (c *TraverseCreateTableConstraint) Enter(in ast.Node) (ast.Node, bool) {
 	if stmt, ok := in.(*ast.CreateTableStmt); ok {
 		c.Table = stmt.Table.Name.String()
 		for _, cons := range stmt.Constraints {
@@ -189,7 +189,7 @@ func (c *TraverseCreateTableForeignKey) Enter(in ast.Node) (ast.Node, bool) {
 	return in, false
 }
 
-func (c *TraverseCreateTableForeignKey) Leave(in ast.Node) (ast.Node, bool) {
+func (c *TraverseCreateTableConstraint) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
 
@@ -240,6 +240,7 @@ func (c *TraverseCreateTableAuditCols) Leave(in ast.Node) (ast.Node, bool) {
 // TraverseCreateTableColsOptions
 type TraverseCreateTableColsOptions struct {
 	Table       string   // 表名
+	Charset     string   // 表字符集
 	PrimaryKeys []string // 主键
 	Cols        []process.ColOptions
 }
@@ -542,7 +543,6 @@ func (c *TraverseCreateTableInnodbLargePrefix) Enter(in ast.Node) (ast.Node, boo
 		}
 		var LargePrefixIndexColsMaps []process.LargePrefixIndexColsMap
 		for _, cons := range stmt.Constraints {
-
 			switch cons.Tp {
 			case ast.ConstraintKey, ast.ConstraintIndex, ast.ConstraintUniq, ast.ConstraintUniqKey, ast.ConstraintUniqIndex, ast.ConstraintFulltext:
 				var LargePrefixIndexColsMap process.LargePrefixIndexColsMap
@@ -580,5 +580,74 @@ func (c *TraverseCreateTableInnodbLargePrefix) Enter(in ast.Node) (ast.Node, boo
 }
 
 func (c *TraverseCreateTableInnodbLargePrefix) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}
+
+// TraverseCreateTableRowSizeTooLarge
+type TraverseCreateTableRowSizeTooLarge struct {
+	RowSizeTooLarge process.RowSizeTooLarge
+}
+
+func (c *TraverseCreateTableRowSizeTooLarge) Enter(in ast.Node) (ast.Node, bool) {
+	if stmt, ok := in.(*ast.CreateTableStmt); ok {
+		c.RowSizeTooLarge.Table = stmt.Table.Name.String()
+		for _, node := range stmt.Options {
+			switch node.Tp {
+			case ast.TableOptionCharset:
+				c.RowSizeTooLarge.Charset = node.StrValue
+			}
+		}
+		for _, col := range stmt.Cols {
+			c.RowSizeTooLarge.RowSizeTooLargeColsMaps = append(c.RowSizeTooLarge.RowSizeTooLargeColsMaps,
+				process.RowSizeTooLargePartSpecification{
+					Column:  col.Name.Name.L,
+					Tp:      col.Tp.Tp,
+					Flen:    col.Tp.Flen,
+					Decimal: col.Tp.Decimal,
+					Charset: col.Tp.Charset,
+					Elems:   col.Tp.Elems,
+				})
+		}
+	}
+	return in, false
+}
+
+func (c *TraverseCreateTableRowSizeTooLarge) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}
+
+// TraverseCreateTableColsTp
+type TraverseCreateTableColsTp struct {
+	Table   string // 表名
+	Charset string // 表字符集
+	Cols    []process.LargePrefixIndexPartSpecification
+}
+
+func (c *TraverseCreateTableColsTp) Enter(in ast.Node) (ast.Node, bool) {
+	if stmt, ok := in.(*ast.CreateTableStmt); ok {
+		c.Table = stmt.Table.Name.String()
+		for _, node := range stmt.Options {
+			switch node.Tp {
+			case ast.TableOptionCharset:
+				c.Charset = node.StrValue
+			}
+		}
+
+		for _, col := range stmt.Cols {
+			c.Cols = append(c.Cols,
+				process.LargePrefixIndexPartSpecification{
+					Column:  col.Name.Name.O,
+					Tp:      col.Tp.Tp,
+					Flen:    col.Tp.Flen,
+					Decimal: col.Tp.Decimal,
+					Charset: col.Tp.Charset,
+					Elems:   col.Tp.Elems,
+				})
+		}
+	}
+	return in, false
+}
+
+func (c *TraverseCreateTableColsTp) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }

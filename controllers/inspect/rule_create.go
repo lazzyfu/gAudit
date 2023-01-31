@@ -33,8 +33,8 @@ func CreateTableRules() []Rule {
 			CheckFunc: (*Rule).RuleCreateTablePrimaryKey,
 		},
 		{
-			Hint:      "CreateTable#外键检查",
-			CheckFunc: (*Rule).RuleCreateTableForeignKey,
+			Hint:      "CreateTable#约束检查",
+			CheckFunc: (*Rule).RuleCreateTableConstraint,
 		},
 		{
 			Hint:      "CreateTable#审计字段检查",
@@ -78,6 +78,10 @@ func CreateTableRules() []Rule {
 			Hint:      "CreateTable#索引InnodbLargePrefix",
 			CheckFunc: (*Rule).RuleCreateTableInnodbLargePrefix,
 		},
+		{
+			Hint:      "CreateTable#检查表定义的行是否超过65535",
+			CheckFunc: (*Rule).RuleCreateTableRowSizeTooLarge,
+		},
 	}
 }
 
@@ -116,11 +120,11 @@ func (r *Rule) RuleCreateTablePrimaryKey(tistmt *ast.StmtNode) {
 	LogicCreateTablePrimaryKey(v, r)
 }
 
-// RuleCreateTableForeignKey
-func (r *Rule) RuleCreateTableForeignKey(tistmt *ast.StmtNode) {
-	v := &TraverseCreateTableForeignKey{}
+// RuleCreateTableConstraint
+func (r *Rule) RuleCreateTableConstraint(tistmt *ast.StmtNode) {
+	v := &TraverseCreateTableConstraint{}
 	(*tistmt).Accept(v)
-	LogicCreateTableForeignKey(v, r)
+	LogicCreateTableConstraint(v, r)
 }
 
 // RuleCreateTableAuditCols
@@ -191,4 +195,11 @@ func (r *Rule) RuleCreateTableInnodbLargePrefix(tistmt *ast.StmtNode) {
 	v := &TraverseCreateTableInnodbLargePrefix{}
 	(*tistmt).Accept(v)
 	LogicCreateTableInnodbLargePrefix(v, r)
+}
+
+// RuleCreateTableRowSizeTooLarge
+func (r *Rule) RuleCreateTableRowSizeTooLarge(tistmt *ast.StmtNode) {
+	v := &TraverseCreateTableRowSizeTooLarge{}
+	(*tistmt).Accept(v)
+	LogicCreateTableRowSizeTooLarge(v, r)
 }

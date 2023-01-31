@@ -52,7 +52,17 @@ var charSets = map[string]int{
 
 // getDataBytes 计算数据类型字节数
 // 计算方法参考:https://dev.mysql.com/doc/refman/8.0/en/storage-requirements.html
-func getDataBytes(l *LargePrefixIndexPartSpecification, dbVersion int) int {
+type DataBytes struct {
+	Column  string
+	Tp      byte
+	Elems   []string // Elems is the element list for enum and set type.
+	Ilen    int      // key `idx_name`(name(32))中的32
+	Flen    int      // 字段长度
+	Decimal int      // decimal字段专用,decimal(12,2)中的2
+	Charset string   // 列字符集
+}
+
+func (l *DataBytes) Get(dbVersion int) int {
 	// Flen: 字段定义的长度
 	// Ilen: key `idx_name`(name(32))中的32
 	// DLen: 创建索引时指定字段的实际长度，如果Ilen有值，长度为Ilen，否则为Flen; 如果类型为enum或set时，长度为len(Elems)
@@ -63,7 +73,7 @@ func getDataBytes(l *LargePrefixIndexPartSpecification, dbVersion int) int {
 		Dlen = len(l.Elems)
 	default:
 		Dlen = l.Flen
-		if l.Ilen != -1 {
+		if l.Ilen > 0 {
 			Dlen = l.Ilen
 		}
 	}

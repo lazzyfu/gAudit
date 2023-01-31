@@ -93,8 +93,8 @@ func LogicCreateTablePrimaryKey(v *TraverseCreateTablePrimaryKey, r *Rule) {
 	}
 }
 
-// LogicCreateTableForeignKey
-func LogicCreateTableForeignKey(v *TraverseCreateTableForeignKey, r *Rule) {
+// LogicCreateTableConstraint
+func LogicCreateTableConstraint(v *TraverseCreateTableConstraint, r *Rule) {
 	if !r.AuditConfig.ENABLE_FOREIGN_KEY && v.IsForeignKey {
 		// 禁止使用外键
 		r.Summary = append(r.Summary, fmt.Sprintf("表`%s`禁止定义外键", v.Table))
@@ -240,6 +240,14 @@ func LogicCreateTableDisabledIndexes(v *TraverseCreateTableDisabledIndexes, r *R
 func LogicCreateTableInnodbLargePrefix(v *TraverseCreateTableInnodbLargePrefix, r *Rule) {
 	var largePrefix process.LargePrefix = v.LargePrefix
 	if err := largePrefix.Check(r.KV); err != nil {
+		r.Summary = append(r.Summary, err.Error())
+	}
+}
+
+// LogicCreateTableRowSizeTooLarge
+func LogicCreateTableRowSizeTooLarge(v *TraverseCreateTableRowSizeTooLarge, r *Rule) {
+	var rowSizeTooLarge process.RowSizeTooLarge = v.RowSizeTooLarge
+	if err := rowSizeTooLarge.Check(r.KV); err != nil {
 		r.Summary = append(r.Summary, err.Error())
 	}
 }

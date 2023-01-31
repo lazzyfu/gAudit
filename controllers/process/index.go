@@ -13,6 +13,8 @@ import (
 	"sqlSyntaxAudit/config"
 	logger "sqlSyntaxAudit/middleware/log"
 	"strings"
+
+	"github.com/jinzhu/copier"
 )
 
 // 检查索引前缀
@@ -299,8 +301,14 @@ func (l *LargePrefix) Check(kv *kv.KVCache) error {
 			if len(key.Charset) == 0 {
 				key.Charset = l.Charset
 			}
-			maxSumLength += getDataBytes(&key, versionIns.Int())
+			var instDataBytes DataBytes
+			err := copier.CopyWithOption(&instDataBytes, key, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+			if err != nil {
+				return err
+			}
+			maxSumLength += instDataBytes.Get(versionIns.Int())
 		}
+
 		logger.AppLog.Debug(fmt.Sprintf("maxSumLength:%d, indexMaxLength:%d", maxSumLength, indexMaxLength))
 		if maxSumLength > indexMaxLength {
 			return fmt.Errorf("表`%s`的索引`%s`超出了innodb-large-prefix限制,当前索引长度为%d字节,最大限制为%d字节【例如:可使用前缀索引,如:Field(length)】", l.Table, i.Name, maxSumLength, indexMaxLength)

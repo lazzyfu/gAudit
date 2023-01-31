@@ -58,10 +58,10 @@ func LogicAlterTableDropColsOrIndexes(v *TraverseAlterTableDropColsOrIndexes, r 
 		return
 	}
 	// 解析获取的db表结构
-	vAduit := &TraverseAlterTableShowCreateTableGetCols{}
+	vAudit := &TraverseAlterTableShowCreateTableGetCols{}
 	switch audit := audit.(type) {
 	case *config.Audit:
-		(audit.TiStmt[0]).Accept(vAduit)
+		(audit.TiStmt[0]).Accept(vAudit)
 	}
 
 	if len(v.Cols) > 0 {
@@ -71,28 +71,28 @@ func LogicAlterTableDropColsOrIndexes(v *TraverseAlterTableDropColsOrIndexes, r 
 		} else {
 			// 检查drop的列是否存在
 			for _, col := range v.Cols {
-				if !utils.IsContain(vAduit.Cols, col) {
+				if !utils.IsContain(vAudit.Cols, col) {
 					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`DROP的列`%s`不存在", v.Table, col))
 				}
 			}
 		}
 		if !r.AuditConfig.ENABLE_DROP_PRIMARYKEY {
 			// 不允许drop主键
-			for _, pri := range vAduit.PrimaryKeys {
+			for _, pri := range vAudit.PrimaryKeys {
 				if utils.IsContain(v.Cols, pri) {
 					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`不允许DROP主键`%s`", v.Table, pri))
 				}
 			}
 		}
 	}
-	if len(vAduit.Indexes) > 0 {
+	if len(vAudit.Indexes) > 0 {
 		if !r.AuditConfig.ENABLE_DROP_INDEXES {
 			// 不允许drop索引
 			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`不允许DROP索引", v.Table))
 		} else {
 			// 检查drop的索引是否存在
 			for _, index := range v.Indexes {
-				if !utils.IsContain(vAduit.Indexes, index) {
+				if !utils.IsContain(vAudit.Indexes, index) {
 					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`DROP的索引`%s`不存在", v.Table, index))
 				}
 			}
@@ -119,14 +119,14 @@ func LogicAlterTableDropTiDBColWithCoveredIndex(v *TraverseAlterTableDropTiDBCol
 		return
 	}
 	// 解析获取的db表结构
-	vAduit := &TraverseCreateTableRedundantIndexes{}
+	vAudit := &TraverseCreateTableRedundantIndexes{}
 	switch audit := audit.(type) {
 	case *config.Audit:
-		(audit.TiStmt[0]).Accept(vAduit)
+		(audit.TiStmt[0]).Accept(vAudit)
 	}
 
 	for _, col := range v.Cols {
-		for _, item := range vAduit.Redundant.IndexesCols {
+		for _, item := range vAudit.Redundant.IndexesCols {
 			if len(item.Cols) > 1 {
 				if utils.IsContain(item.Cols, col) {
 					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`DROP列`%s`操作失败,无法删除包含组合索引的列,当前列已经被组合索引%s(%s)覆盖【TiDB目前不支持删除主键列或组合索引相关列,请先删除复合索引`%s`】", v.Table, col, item.Index, strings.Join(item.Cols, ","), item.Index))
@@ -213,18 +213,18 @@ func LogicAlterTableAddPrimaryKey(v *TraverseAlterTableAddPrimaryKey, r *Rule) {
 		return
 	}
 	// 解析获取的db表结构
-	vAduit := &TraverseAlterTableShowCreateTableGetCols{}
+	vAudit := &TraverseAlterTableShowCreateTableGetCols{}
 	switch audit := audit.(type) {
 	case *config.Audit:
-		(audit.TiStmt[0]).Accept(vAduit)
+		(audit.TiStmt[0]).Accept(vAudit)
 	}
 
-	if len(vAduit.PrimaryKeys) > 0 && len(v.Cols) > 0 {
+	if len(vAudit.PrimaryKeys) > 0 && len(v.Cols) > 0 {
 		var newPrimaryKeys []string
 		for _, col := range v.Cols {
 			newPrimaryKeys = append(newPrimaryKeys, fmt.Sprintf("`%s`", col))
 		}
-		r.Summary = append(r.Summary, fmt.Sprintf("表`%s`已经存在主键`%s`,增加主键%+s失败", v.Table, strings.Join(vAduit.PrimaryKeys, ","), strings.Join(newPrimaryKeys, ",")))
+		r.Summary = append(r.Summary, fmt.Sprintf("表`%s`已经存在主键`%s`,增加主键%+s失败", v.Table, strings.Join(vAudit.PrimaryKeys, ","), strings.Join(newPrimaryKeys, ",")))
 	}
 }
 
@@ -243,12 +243,12 @@ func LogicAlterTableAddColRepeatDefine(v *TraverseAlterTableAddColRepeatDefine, 
 		return
 	}
 	// 解析获取的db表结构
-	vAduit := &TraverseCreateTableColsRepeatDefine{}
+	vAudit := &TraverseCreateTableColsRepeatDefine{}
 	switch audit := audit.(type) {
 	case *config.Audit:
-		(audit.TiStmt[0]).Accept(vAduit)
+		(audit.TiStmt[0]).Accept(vAudit)
 	}
-	v.Cols = append(v.Cols, vAduit.Cols...)
+	v.Cols = append(v.Cols, vAudit.Cols...)
 
 	if ok, data := utils.IsRepeat(v.Cols); ok {
 		r.Summary = append(r.Summary, fmt.Sprintf("发现重复的列名`%s`[表`%s`]", strings.Join(data, ","), v.Table))
@@ -298,12 +298,12 @@ func LogicAlterTableAddIndexCount(v *TraverseAlterTableAddIndexCount, r *Rule) {
 		return
 	}
 	// 解析获取的db表结构
-	vAduit := &TraverseCreateTableIndexesCount{}
+	vAudit := &TraverseCreateTableIndexesCount{}
 	switch audit := audit.(type) {
 	case *config.Audit:
-		(audit.TiStmt[0]).Accept(vAduit)
+		(audit.TiStmt[0]).Accept(vAudit)
 	}
-	v.Number.Number += vAduit.Number.Number
+	v.Number.Number += vAudit.Number.Number
 	// 检查二级索引数量
 	var indexNumberCheck process.IndexNumber = v.Number
 	indexNumberCheck.AuditConfig = r.AuditConfig
@@ -312,6 +312,18 @@ func LogicAlterTableAddIndexCount(v *TraverseAlterTableAddIndexCount, r *Rule) {
 	}
 	if err := indexNumberCheck.CheckPrimaryKeyColsNum(); err != nil {
 		r.Summary = append(r.Summary, err.Error())
+	}
+}
+
+// LogicAlterTableAddConstraint
+func LogicAlterTableAddConstraint(v *TraverseAlterTableAddConstraint, r *Rule) {
+	if v.IsMatch == 0 {
+		return
+	}
+	r.MergeAlter = v.Table
+	if !r.AuditConfig.ENABLE_FOREIGN_KEY && v.IsForeignKey {
+		// 禁止使用外键
+		r.Summary = append(r.Summary, fmt.Sprintf("表`%s`禁止定义外键", v.Table))
 	}
 }
 
@@ -329,12 +341,12 @@ func LogicAlterTableAddIndexRepeatDefine(v *TraverseAlterTableAddIndexRepeatDefi
 		return
 	}
 	// 解析获取的db表结构
-	vAduit := &TraverseCreateTableIndexesRepeatDefine{}
+	vAudit := &TraverseCreateTableIndexesRepeatDefine{}
 	switch audit := audit.(type) {
 	case *config.Audit:
-		(audit.TiStmt[0]).Accept(vAduit)
+		(audit.TiStmt[0]).Accept(vAudit)
 	}
-	v.Indexes = append(v.Indexes, vAduit.Indexes...)
+	v.Indexes = append(v.Indexes, vAudit.Indexes...)
 	if ok, data := utils.IsRepeat(v.Indexes); ok {
 		r.Summary = append(r.Summary, fmt.Sprintf("发现重复的索引`%s`[表`%s`]", strings.Join(data, ","), v.Table))
 	}
@@ -356,14 +368,14 @@ func LogicAlterTableRedundantIndexes(v *TraverseAlterTableRedundantIndexes, r *R
 		return
 	}
 	// 解析获取的db表结构
-	vAduit := &TraverseCreateTableRedundantIndexes{}
+	vAudit := &TraverseCreateTableRedundantIndexes{}
 	switch audit := audit.(type) {
 	case *config.Audit:
-		(audit.TiStmt[0]).Accept(vAduit)
+		(audit.TiStmt[0]).Accept(vAudit)
 	}
-	v.Redundant.Cols = vAduit.Redundant.Cols
-	v.Redundant.Indexes = append(v.Redundant.Indexes, vAduit.Redundant.Indexes...)
-	v.Redundant.IndexesCols = append(v.Redundant.IndexesCols, vAduit.Redundant.IndexesCols...)
+	v.Redundant.Cols = vAudit.Redundant.Cols
+	v.Redundant.Indexes = append(v.Redundant.Indexes, vAudit.Redundant.Indexes...)
+	v.Redundant.IndexesCols = append(v.Redundant.IndexesCols, vAudit.Redundant.IndexesCols...)
 	var redundantIndexCheck process.RedundantIndex = v.Redundant
 	if err := redundantIndexCheck.CheckRepeatCols(); err != nil {
 		r.Summary = append(r.Summary, err.Error())
@@ -390,13 +402,13 @@ func LogicAlterTableDisabledIndexes(v *TraverseAlterTableDisabledIndexes, r *Rul
 		return
 	}
 	// 解析获取的db表结构
-	vAduit := &TraverseCreateTableDisabledIndexes{}
+	vAudit := &TraverseCreateTableDisabledIndexes{}
 	switch audit := audit.(type) {
 	case *config.Audit:
-		(audit.TiStmt[0]).Accept(vAduit)
+		(audit.TiStmt[0]).Accept(vAudit)
 	}
-	v.DisabledIndexes.Cols = append(v.DisabledIndexes.Cols, vAduit.DisabledIndexes.Cols...)
-	v.DisabledIndexes.IndexesCols = append(v.DisabledIndexes.IndexesCols, vAduit.DisabledIndexes.IndexesCols...)
+	v.DisabledIndexes.Cols = append(v.DisabledIndexes.Cols, vAudit.DisabledIndexes.Cols...)
+	v.DisabledIndexes.IndexesCols = append(v.DisabledIndexes.IndexesCols, vAudit.DisabledIndexes.IndexesCols...)
 
 	// BLOB/TEXT类型不能设置为索引
 	var indexTypesCheck process.DisabledIndexes = v.DisabledIndexes
@@ -419,13 +431,13 @@ func LogicAlterTableModifyColOptions(v *TraverseAlterTableModifyColOptions, r *R
 		return
 	}
 	// 解析获取的db表结构
-	vAduit := &TraverseCreateTableColsOptions{}
+	vAudit := &TraverseCreateTableColsOptions{}
 	switch audit := audit.(type) {
 	case *config.Audit:
-		(audit.TiStmt[0]).Accept(vAduit)
+		(audit.TiStmt[0]).Accept(vAudit)
 	}
 	var vCols []string
-	for _, vCol := range vAduit.Cols {
+	for _, vCol := range vAudit.Cols {
 		vCols = append(vCols, vCol.Column)
 	}
 	// 检查modify的列是否存在
@@ -436,7 +448,7 @@ func LogicAlterTableModifyColOptions(v *TraverseAlterTableModifyColOptions, r *R
 	}
 	// 检查modify的列是否进行列类型变更
 	for _, col := range v.Cols {
-		for _, vCol := range vAduit.Cols {
+		for _, vCol := range vAudit.Cols {
 			if err := process.CheckColsTypeChanged(col, vCol, r.AuditConfig, r.KV, "modify", v.Table); err != nil {
 				r.Summary = append(r.Summary, err.Error())
 			}
@@ -481,13 +493,13 @@ func LogicAlterTableChangeColOptions(v *TraverseAlterTableChangeColOptions, r *R
 		return
 	}
 	// 解析获取的db表结构
-	vAduit := &TraverseCreateTableColsOptions{}
+	vAudit := &TraverseCreateTableColsOptions{}
 	switch audit := audit.(type) {
 	case *config.Audit:
-		(audit.TiStmt[0]).Accept(vAduit)
+		(audit.TiStmt[0]).Accept(vAudit)
 	}
 	var vCols []string
-	for _, vCol := range vAduit.Cols {
+	for _, vCol := range vAudit.Cols {
 		vCols = append(vCols, vCol.Column)
 	}
 	// 判断change操作是否为修改列名操作
@@ -515,7 +527,7 @@ func LogicAlterTableChangeColOptions(v *TraverseAlterTableChangeColOptions, r *R
 
 	// 检查change的列是否进行列类型变更
 	for _, col := range v.Cols {
-		for _, vCol := range vAduit.Cols {
+		for _, vCol := range vAudit.Cols {
 			if col.OldColumn == vCol.Column {
 				if err := process.CheckColsTypeChanged(col, vCol, r.AuditConfig, r.KV, "change", v.Table); err != nil {
 					r.Summary = append(r.Summary, err.Error())
@@ -574,22 +586,22 @@ func LogicAlterTableRenameIndex(v *TraverseAlterTableRenameIndex, r *Rule) {
 		return
 	}
 	// 解析获取的db表结构
-	vAduit := &TraverseAlterTableShowCreateTableGetCols{}
+	vAudit := &TraverseAlterTableShowCreateTableGetCols{}
 	switch audit := audit.(type) {
 	case *config.Audit:
-		(audit.TiStmt[0]).Accept(vAduit)
+		(audit.TiStmt[0]).Accept(vAudit)
 	}
 	// 判断表是否存在
-	if v.Table != vAduit.Table {
+	if v.Table != vAudit.Table {
 		r.Summary = append(r.Summary, fmt.Sprintf("表`%s`不存在", v.Table))
 	}
 	for _, item := range v.Indexes {
 		// 判断old_index_name是否存在
-		if !utils.IsContain(vAduit.Indexes, item.OldIndex) {
+		if !utils.IsContain(vAudit.Indexes, item.OldIndex) {
 			r.Summary = append(r.Summary, fmt.Sprintf("索引`%s`不存在[表`%s`]", item.OldIndex, v.Table))
 		}
 		// 判断new_index_name是否存在
-		if utils.IsContain(vAduit.Indexes, item.NewIndex) {
+		if utils.IsContain(vAudit.Indexes, item.NewIndex) {
 			r.Summary = append(r.Summary, fmt.Sprintf("新的索引`%s`已存在[表`%s`]", item.NewIndex, v.Table))
 		}
 		// 检查索引名合法性
@@ -615,5 +627,85 @@ func LogicAlterTableRenameTblName(v *TraverseAlterTableRenameTblName, r *Rule) {
 	if err, msg := DescTable(v.NewTblName, r.DB); err == nil {
 		r.Summary = append(r.Summary, msg)
 		return
+	}
+}
+
+// LogicAlterTableInnodbLargePrefix
+func LogicAlterTableInnodbLargePrefix(v *TraverseAlterTableInnodbLargePrefix, r *Rule) {
+	// 获取db表结构
+	audit, err := ShowCreateTable(v.LargePrefix.Table, r.DB, r.KV)
+	if err != nil {
+		r.Summary = append(r.Summary, err.Error())
+		return
+	}
+	// 解析获取的db表结构
+	vAudit := &TraverseCreateTableColsTp{}
+	switch audit := audit.(type) {
+	case *config.Audit:
+		(audit.TiStmt[0]).Accept(vAudit)
+	}
+	// 将提前到的字段类型复制给索引字段结构体
+	var tmpLargePrefix process.LargePrefix
+	tmpLargePrefix.Table = v.LargePrefix.Table
+	tmpLargePrefix.Charset = vAudit.Charset
+	for _, i := range v.LargePrefix.LargePrefixIndexColsMaps {
+		var tmpKeys []process.LargePrefixIndexPartSpecification = i.Keys
+		for index, ii := range i.Keys {
+			for _, jj := range vAudit.Cols {
+				if strings.EqualFold(jj.Column, ii.Column) {
+					tmpKeys[index].Tp = jj.Tp
+					tmpKeys[index].Flen = jj.Flen
+					tmpKeys[index].Decimal = jj.Decimal
+					tmpKeys[index].Charset = jj.Charset
+				}
+			}
+		}
+		tmpLargePrefix.LargePrefixIndexColsMaps = append(tmpLargePrefix.LargePrefixIndexColsMaps, process.LargePrefixIndexColsMap{Name: i.Name, Keys: tmpKeys})
+	}
+
+	var largePrefix process.LargePrefix = tmpLargePrefix
+	if err := largePrefix.Check(r.KV); err != nil {
+		r.Summary = append(r.Summary, err.Error())
+	}
+}
+
+// LogicAlterTableRowSizeTooLarge
+func LogicAlterTableRowSizeTooLarge(v *TraverseAlterTableRowSizeTooLarge, r *Rule) {
+	if v.IsMatch == 0 {
+		return
+	}
+	r.MergeAlter = v.Table
+
+	// 获取db表结构
+	audit, err := ShowCreateTable(v.Table, r.DB, r.KV)
+	if err != nil {
+		r.Summary = append(r.Summary, err.Error())
+		return
+	}
+	// 解析获取的db表结构
+	vAudit := &TraverseCreateTableRowSizeTooLarge{}
+	switch audit := audit.(type) {
+	case *config.Audit:
+		(audit.TiStmt[0]).Accept(vAudit)
+	}
+	// 拷贝，如果Column不存在append，Column存在，重新赋值
+	for _, v := range v.RowSizeColsMaps {
+		if index, ok := func(v process.RowSizeTooLargePartSpecification) (int, bool) {
+			for i, vv := range vAudit.RowSizeTooLarge.RowSizeTooLargeColsMaps {
+				if strings.EqualFold(v.Column, vv.Column) {
+					return i, true
+				}
+			}
+			return 0, false
+		}(v); !ok {
+			vAudit.RowSizeTooLarge.RowSizeTooLargeColsMaps = append(vAudit.RowSizeTooLarge.RowSizeTooLargeColsMaps, v)
+		} else {
+			vAudit.RowSizeTooLarge.RowSizeTooLargeColsMaps[index] = v
+		}
+
+	}
+	var rowSizeTooLarge process.RowSizeTooLarge = vAudit.RowSizeTooLarge
+	if err := rowSizeTooLarge.Check(r.KV); err != nil {
+		r.Summary = append(r.Summary, err.Error())
 	}
 }

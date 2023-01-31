@@ -57,6 +57,10 @@ func AlterTableRules() []Rule {
 			CheckFunc: (*Rule).RuleAlterTableAddIndexCount,
 		},
 		{
+			Hint:      "AlterTable#AddConstraint检查",
+			CheckFunc: (*Rule).RuleAlterTableAddConstraint,
+		},
+		{
 			Hint:      "AlterTable#Add重复索引检查",
 			CheckFunc: (*Rule).RuleAlterTableAddIndexRepeatDefine,
 		},
@@ -83,6 +87,14 @@ func AlterTableRules() []Rule {
 		{
 			Hint:      "AlterTable#RenameTblName检查",
 			CheckFunc: (*Rule).RuleAlterTableRenameTblName,
+		},
+		{
+			Hint:      "AlterTable#索引InnodbLargePrefix",
+			CheckFunc: (*Rule).RuleAlterTableInnodbLargePrefix,
+		},
+		{
+			Hint:      "AlterTable#检查表定义的行是否超过65535",
+			CheckFunc: (*Rule).RuleAlterTableRowSizeTooLarge,
 		},
 	}
 }
@@ -164,6 +176,13 @@ func (r *Rule) RuleAlterTableAddIndexCount(tistmt *ast.StmtNode) {
 	LogicAlterTableAddIndexCount(v, r)
 }
 
+// RuleAlterTableAddConstraint
+func (r *Rule) RuleAlterTableAddConstraint(tistmt *ast.StmtNode) {
+	v := &TraverseAlterTableAddConstraint{}
+	(*tistmt).Accept(v)
+	LogicAlterTableAddConstraint(v, r)
+}
+
 // RuleAlterTableAddIndexRepeatDefine
 func (r *Rule) RuleAlterTableAddIndexRepeatDefine(tistmt *ast.StmtNode) {
 	v := &TraverseAlterTableAddIndexRepeatDefine{}
@@ -211,4 +230,18 @@ func (r *Rule) RuleAlterTableRenameTblName(tistmt *ast.StmtNode) {
 	v := &TraverseAlterTableRenameTblName{}
 	(*tistmt).Accept(v)
 	LogicAlterTableRenameTblName(v, r)
+}
+
+// RuleAlterTableInnodbLargePrefix
+func (r *Rule) RuleAlterTableInnodbLargePrefix(tistmt *ast.StmtNode) {
+	v := &TraverseAlterTableInnodbLargePrefix{}
+	(*tistmt).Accept(v)
+	LogicAlterTableInnodbLargePrefix(v, r)
+}
+
+// RuleAlterTableRowSizeTooLarge
+func (r *Rule) RuleAlterTableRowSizeTooLarge(tistmt *ast.StmtNode) {
+	v := &TraverseAlterTableRowSizeTooLarge{}
+	(*tistmt).Accept(v)
+	LogicAlterTableRowSizeTooLarge(v, r)
 }
