@@ -95,25 +95,28 @@ func GetDBVars(db *utils.DB) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	data := make(map[string]string)
+	var data map[string]string = map[string]string{
+		"dbVersion":   "",
+		"dbCharset":   "utf8",
+		"largePrefix": "OFF",
+	}
+	// [map[Value:utf8 Variable_name:character_set_database] map[Value:5.7.35-log Variable_name:version]]
 	for _, row := range *result {
-		if row["Variable_name"] == "version" {
+		if strings.EqualFold(row["Variable_name"].(string), "version") {
 			data["dbVersion"] = row["Value"].(string)
 		}
-		if row["Variable_name"] == "character_set_database" {
+		if strings.EqualFold(row["Variable_name"].(string), "character_set_database") {
 			data["dbCharset"] = row["Value"].(string)
 		}
-		if row["Variable_name"] == "innodb_large_prefix" {
-			var largePrefix string
+		if strings.EqualFold(row["Variable_name"].(string), "innodb_large_prefix") {
 			switch row["Value"].(string) {
 			case "0":
-				largePrefix = "OFF"
+				data["largePrefix"] = "OFF"
 			case "1":
-				largePrefix = "ON"
+				data["largePrefix"] = "ON"
 			default:
-				largePrefix = strings.ToUpper(row["Value"].(string))
+				data["largePrefix"] = strings.ToUpper(row["Value"].(string))
 			}
-			data["largePrefix"] = largePrefix
 		}
 	}
 	return data, nil
