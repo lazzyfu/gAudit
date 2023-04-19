@@ -20,8 +20,10 @@ type DbVersion struct {
 func (d *DbVersion) Format() []string {
 	// 5.7.25-TiDB-v5.0.4
 	// 5.7.35-log
+	// 8.0.26
+	//
 	tokens := strings.Split(d.Version, "-")
-	if len(tokens) <= 1 {
+	if len(tokens) == 0 {
 		return []string{"1", "0", "00"}
 	}
 	versionSeg := strings.Split(tokens[0], ".")
