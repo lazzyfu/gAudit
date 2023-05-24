@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"regexp"
 	"sqlSyntaxAudit/common/kv"
 	"sqlSyntaxAudit/common/utils"
 	"sqlSyntaxAudit/config"
@@ -184,6 +185,13 @@ func (c *Checker) AlterTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId str
 	// alter语句
 	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DDL", Level: "INFO"}
 	var mergeAlter string
+	// 不允许使用alter ... add constraint ... unique ...语法
+	match, _ := regexp.MatchString(".*alter.*table(.*)add.*constraint.*unique.*", stmt.Text())
+	if match {
+		data.Level = "WARN"
+		data.Summary = append(data.Summary, "不允许使用alter table ... add constraint ... unique ...语法添加唯一索引;请使用alter table ... add unique ...语法")
+		return data, mergeAlter
+	}
 	for _, rule := range AlterTableRules() {
 		rule.DB = c.DB
 		rule.KV = kv
