@@ -185,12 +185,12 @@ func (c *Checker) AlterTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId str
 	// alter语句
 	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DDL", Level: "INFO"}
 	var mergeAlter string
-	// 不允许使用alter ... add constraint ... unique ...语法
-	tmpCompile := regexp.MustCompile(`(?is:.*alter.*table(.*)add.*constraint.*unique.*)`)
+	// 禁止使用ALTER TABLE...ADD CONSTRAINT...语法
+	tmpCompile := regexp.MustCompile(`(?is:.*alter.*table.*add.*constraint.*)`)
 	match := tmpCompile.MatchString(stmt.Text())
 	if match {
 		data.Level = "WARN"
-		data.Summary = append(data.Summary, "不允许使用alter table ... add constraint ... unique ...语法添加唯一索引;请使用alter table ... add unique ...语法")
+		data.Summary = append(data.Summary, "禁止使用ALTER TABLE...ADD CONSTRAINT...语法")
 		return data, mergeAlter
 	}
 	for _, rule := range AlterTableRules() {
