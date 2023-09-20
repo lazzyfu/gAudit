@@ -44,7 +44,7 @@ func (e *Explain) Get(EXPLAIN_RULE string) (int, error) {
 	if !strings.HasPrefix(explainSQL, "EXPLAIN") {
 		return 0, errors.New("Explain语句未检测到以`EXPLAIN`开头,请联系管理员")
 	}
-	rows, err := e.DB.FetchRows(explainSQL)
+	rows, err := e.DB.Query(explainSQL)
 	if err != nil {
 		return 0, err
 	}

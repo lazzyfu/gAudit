@@ -26,7 +26,7 @@ func ShowCreateTable(table string, db *utils.DB, kv *kv.KVCache) (data interface
 		return data, nil
 	}
 	query := fmt.Sprintf("show create table `%s`", table)
-	result, err := db.FetchRows(query)
+	result, err := db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func ShowCreateTable(table string, db *utils.DB, kv *kv.KVCache) (data interface
 // descTable
 func DescTable(table string, db *utils.DB) (error, string) {
 	// 检查表是否存在，适用于确认当前实例当前库的表
-	err := db.Exec(fmt.Sprintf("desc `%s`", table))
+	err := db.Execute(fmt.Sprintf("desc `%s`", table))
 	if me, ok := err.(*mysqlapi.MySQLError); ok {
 		if me.Number == 1146 {
 			// 表不存在
@@ -72,7 +72,7 @@ func DescTable(table string, db *utils.DB) (error, string) {
 // verifyTable
 func VerifyTable(table string, db *utils.DB) (error, string) {
 	// 通过information_schema.tables检查表是否存在，适用于确认当前实例跨库的表
-	result, err := db.FetchRows(fmt.Sprintf("select count(*) as count from information_schema.tables where table_name='%s'", table))
+	result, err := db.Query(fmt.Sprintf("select count(*) as count from information_schema.tables where table_name='%s'", table))
 	if err != nil {
 		return err, fmt.Sprintf("执行SQL失败,主机:%s:%d,错误:%s", db.Host, db.Port, err.Error())
 	}
@@ -91,7 +91,7 @@ func VerifyTable(table string, db *utils.DB) (error, string) {
 
 // 获取DB变量
 func GetDBVars(db *utils.DB) (map[string]string, error) {
-	result, err := db.FetchRows("show variables where Variable_name in  ('innodb_large_prefix','version','character_set_database')")
+	result, err := db.Query("show variables where Variable_name in  ('innodb_large_prefix','version','character_set_database')")
 	if err != nil {
 		return nil, err
 	}

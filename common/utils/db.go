@@ -41,11 +41,12 @@ func (d *DB) Open() (*sql.DB, error) {
 
 	DSN := config.FormatDSN()
 	db, err := sql.Open("mysql", DSN)
+	db.SetMaxOpenConns(1)
 	return db, err
 }
 
 // Executes a query without returning any rows.
-func (d *DB) Exec(query string) error {
+func (d *DB) Execute(query string) error {
 	db, err := d.Open()
 	if err != nil {
 		return err
@@ -56,54 +57,57 @@ func (d *DB) Exec(query string) error {
 	return err
 }
 
-// FetchRows
-func (d *DB) FetchRows(query string) (*[]map[string]interface{}, error) {
+// Query
+func (d *DB) Query(query string) (*[]map[string]interface{}, error) {
 	db, err := d.Open()
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
-
+	// 执行查询
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
 	}
-
-	// Get column names
+	// 获取列名
 	columns, error := rows.Columns()
 	if error != nil {
 		return nil, error
 	}
-
-	// Make a slice for the values
-	values := make([]sql.RawBytes, len(columns))
-	scanArgs := make([]interface{}, len(values))
-	for i := range values {
-		scanArgs[i] = &values[i]
+	// Make a slice
+	vals := make([]interface{}, len(columns))
+	for i := range columns {
+		vals[i] = new(sql.RawBytes)
 	}
-
 	// Fetch rows
-	resultSlice := make([]map[string]interface{}, 0)
+	result := make([]map[string]interface{}, 0)
 	for rows.Next() {
-		// get RawBytes from data
-		err = rows.Scan(scanArgs...)
-		if err != nil {
+		if err := rows.Scan(vals...); err != nil {
 			return nil, err
 		}
-
-		var value string
-		vmap := make(map[string]interface{}, len(scanArgs))
-
-		for i, col := range values {
-			// Here we can check if the value is nil (NULL value)
-			if col == nil {
-				value = "NULL"
-			} else {
-				value = string(col)
+		// var value string
+		vmap := make(map[string]interface{}, len(vals))
+		for i, c := range vals {
+			// 类型断言
+			switch v := c.(type) {
+			case *sql.RawBytes:
+				if *v == nil {
+					// nil在前端解析的是null，符合预期，也可以直接return nil
+					vmap[columns[i]] = "NULL"
+				} else {
+					vmap[columns[i]] = string(*v)
+				}
 			}
-			vmap[columns[i]] = value
 		}
-		resultSlice = append(resultSlice, vmap)
+		result = append(result, vmap)
 	}
-	return &resultSlice, nil
+	if err = rows.Close(); err != nil {
+		return nil, err
+	}
+
+	// Rows.Err will report the last error encountered by Rows.Scan.
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }

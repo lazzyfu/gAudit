@@ -230,22 +230,19 @@ func CheckColsTypeChanged(col ColOptions, vCol ColOptions, auditConfig *config.A
 
 	if oriColumn == vCol.Column {
 		if auditConfig.ENABLE_COLUMN_TYPE_CHANGE {
-			// 允许列类型变更，不检查MySQL，仅检查TiDB
-			if dbVersionIns.IsTiDB() {
-				return funcCheck()
-			}
-		} else {
-			// 不允许列类型变更
-			// 当ENABLE_COLUMN_TYPE_CHANGE = false时，ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE生效
-			if auditConfig.ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE {
-				// 启用兼容模式
-				return funcCheck()
-			}
-			if !auditConfig.ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE {
-				// 禁用兼容模式
-				if col.Tp != vCol.Tp {
-					return fmt.Errorf("列`%s`不允许变更数据类型[表`%s`]", col.Column, table)
-				}
+			// 允许列类型变更
+			return nil
+		}
+		// 不允许列类型变更
+		// 当ENABLE_COLUMN_TYPE_CHANGE = false时，ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE生效
+		if auditConfig.ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE {
+			// 启用兼容模式
+			return funcCheck()
+		}
+		if !auditConfig.ENABLE_COLUMN_TYPE_CHANGE_COMPATIBLE {
+			// 禁用兼容模式
+			if col.Tp != vCol.Tp {
+				return fmt.Errorf("列`%s`不允许变更数据类型[表`%s`]", col.Column, table)
 			}
 		}
 	}
