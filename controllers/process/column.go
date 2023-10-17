@@ -164,7 +164,13 @@ func (c *ColOptions) CheckColumnDefaultValue() error {
 					return fmt.Errorf("列`%s`默认值和类型不匹配[表`%s`]", c.Column, c.Table)
 				}
 			}
+		case mysql.TypeVarchar, mysql.TypeString:
+			// 判断string型默认值的长度是否超过了定义的长度
+			if utf8.RuneCountInString(c.DefaultValue.(string)) > c.Flen {
+				return fmt.Errorf("列`%s`的默认值超过了字段类型定义的长度[表`%s`]", c.Column, c.Table)
+			}
 		}
+
 	}
 	// 有默认值，配置了无效的默认值，如default current_timestamp
 	if c.HasDefaultValue && !(c.Tp == mysql.TypeTimestamp || c.Tp == mysql.TypeDatetime) && c.DefaultValue == "current_timestamp" {
