@@ -52,6 +52,10 @@ func (e *Explain) Get(EXPLAIN_RULE string) (int, error) {
 	var data []ExplainOutput
 	err = mapstructure.WeakDecode(rows, &data)
 	if err != nil {
+		// 处理多表删除未匹配到行返回rows=NULL的情况
+		if strings.Contains(err.Error(), "strconv.ParseInt: parsing \"NULL\"") {
+			return 0, nil
+		}
 		return 0, err
 	}
 	// 获取db版本
