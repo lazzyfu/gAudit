@@ -37,7 +37,7 @@ type ColOptions struct {
 // 检查列名长度
 func (c *ColOptions) CheckColumnLength() error {
 	if utf8.RuneCountInString(c.Column) > c.AuditConfig.MAX_COLUMN_NAME_LENGTH {
-		return fmt.Errorf("列`%s`命名长度超出限制,最大字符数为%d[表`%s`]", c.Column, c.AuditConfig.MAX_COLUMN_NAME_LENGTH, c.Table)
+		return fmt.Errorf("列`%s`命名长度超出限制，最大字符数为%d[表`%s`]", c.Column, c.AuditConfig.MAX_COLUMN_NAME_LENGTH, c.Table)
 	}
 	return nil
 }
@@ -46,7 +46,7 @@ func (c *ColOptions) CheckColumnLength() error {
 func (c *ColOptions) CheckColumnIdentifer() error {
 	if c.AuditConfig.CHECK_IDENTIFIER {
 		if ok := utils.IsMatchPattern(utils.NamePattern, c.Column); !ok {
-			return fmt.Errorf("列`%s`命名不符合要求,仅允许匹配正则`%s`[表`%s`]", c.Column, utils.NamePattern, c.Table)
+			return fmt.Errorf("列`%s`命名不符合要求，仅允许匹配正则`%s`[表`%s`]", c.Column, utils.NamePattern, c.Table)
 		}
 	}
 	return nil
@@ -81,7 +81,7 @@ func (c *ColOptions) CheckColumnCharToVarchar() error {
 // 最大允许定义的varchar长度
 func (c *ColOptions) CheckColumnMaxVarcharLength() error {
 	if c.AuditConfig.MAX_VARCHAR_LENGTH < c.Flen && c.Tp == mysql.TypeVarchar {
-		return fmt.Errorf("列`%s`最大允许定义的varchar长度为%d,当前varchar长度为%d[表`%s`]", c.Column, c.AuditConfig.MAX_VARCHAR_LENGTH, c.Flen, c.Table)
+		return fmt.Errorf("列`%s`最大允许定义的varchar长度为%d，当前varchar长度为%d[表`%s`]", c.Column, c.AuditConfig.MAX_VARCHAR_LENGTH, c.Flen, c.Table)
 	}
 	return nil
 }
@@ -90,7 +90,7 @@ func (c *ColOptions) CheckColumnMaxVarcharLength() error {
 func (c *ColOptions) CheckColumnFloatDouble() error {
 	if c.AuditConfig.CHECK_COLUMN_FLOAT_DOUBLE {
 		if c.Tp == mysql.TypeFloat || c.Tp == mysql.TypeDouble {
-			return fmt.Errorf("列`%s`的类型为float或double,建议转换为int/bigint/decimal类型[表`%s`]", c.Column, c.Table)
+			return fmt.Errorf("列`%s`的类型为float或double，建议转换为int/bigint/decimal类型[表`%s`]", c.Column, c.Table)
 		}
 	}
 	return nil

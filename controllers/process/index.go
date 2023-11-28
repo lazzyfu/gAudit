@@ -115,12 +115,12 @@ func (i *IndexNumber) CheckPrimaryKeyColsNum() error {
 		if item.Index == "PrimaryKey" {
 			// 主键索引列数不能超过指定的个数
 			if item.Len > i.AuditConfig.PRIMARYKEY_MAX_KEY_PARTS {
-				return fmt.Errorf("表`%s`的主键索引`PRIMARY KEY`最多允许组成列数为%d,当前列数为%d", i.Table, i.AuditConfig.PRIMARYKEY_MAX_KEY_PARTS, item.Len)
+				return fmt.Errorf("表`%s`的主键索引`PRIMARY KEY`最多允许组成列数为%d，当前列数为%d", i.Table, i.AuditConfig.PRIMARYKEY_MAX_KEY_PARTS, item.Len)
 			}
 		} else {
 			// 二级索引的列数不能超过指定的个数,包括唯一索引
 			if item.Len > i.AuditConfig.SECONDARY_INDEX_MAX_KEY_PARTS {
-				return fmt.Errorf("表`%s`的二级索引`%s`最多允许组成列数为%d,当前列数为%d", i.Table, item.Index, i.AuditConfig.SECONDARY_INDEX_MAX_KEY_PARTS, item.Len)
+				return fmt.Errorf("表`%s`的二级索引`%s`最多允许组成列数为%d，当前列数为%d", i.Table, item.Index, i.AuditConfig.SECONDARY_INDEX_MAX_KEY_PARTS, item.Len)
 			}
 		}
 	}
@@ -383,7 +383,7 @@ func (l *LargePrefix) Check(kv *kv.KVCache) error {
 
 		logger.AppLog.Debug(fmt.Sprintf("maxSumLength:%d, indexMaxLength:%d", maxSumLength, indexMaxLength))
 		if maxSumLength > indexMaxLength {
-			return fmt.Errorf("表`%s`的索引`%s`超出了innodb-large-prefix限制，当前索引长度为%d字节，最大限制为%d字节【例如可使用前缀索引,如:Field(length)】", l.Table, i.Name, maxSumLength, indexMaxLength)
+			return fmt.Errorf("表`%s`的索引`%s`超出了innodb-large-prefix限制，当前索引长度为%d字节，最大限制为%d字节【例如可使用前缀索引，如：Field(length)】", l.Table, i.Name, maxSumLength, indexMaxLength)
 		}
 	}
 	return nil
