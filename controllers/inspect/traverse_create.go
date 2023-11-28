@@ -482,7 +482,7 @@ func (c *TraverseCreateTableRedundantIndexes) Enter(in ast.Node) (ast.Node, bool
 				for _, v := range cons.Keys {
 					idxColsMap = append(idxColsMap, v.Column.Name.L)
 				}
-				c.Redundant.IndexesCols = append(c.Redundant.IndexesCols, process.IndexColsMap{Index: cons.Name, Cols: idxColsMap})
+				c.Redundant.IndexesCols = append(c.Redundant.IndexesCols, process.IndexColsMap{Index: cons.Name, Cols: idxColsMap, Tag: "is_meta"})
 			}
 		}
 	}
