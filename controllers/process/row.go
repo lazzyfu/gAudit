@@ -43,7 +43,7 @@ func (l *RowSizeTooLarge) Check(kv *kv.KVCache) error {
 	}
 	logger.AppLog.Debug(fmt.Sprintf("maxSumLength:%d, maxRowSize:%d", maxSumLength, maxRowSize))
 	if maxSumLength > maxRowSize {
-		return fmt.Errorf("表`%s`触发了Row Size Limit,The maximum row size is 65535,当前为%d字节,您可以将一些列更改为TEXT类型(参考:https://dev.mysql.com/doc/refman/5.7/en/column-count-limit.html)", l.Table, maxSumLength)
+		return fmt.Errorf("表`%s`触发了Row Size Limit,The maximum row size is 65535，当前为%d字节，您可以将一些列更改为TEXT类型(参考:https://dev.mysql.com/doc/refman/5.7/en/column-count-limit.html)", l.Table, maxSumLength)
 	}
 	return nil
 }

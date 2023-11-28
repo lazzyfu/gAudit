@@ -26,7 +26,7 @@ func LogicAlterTableIsExist(v *TraverseAlterTableIsExist, r *Rule) {
 	if len(r.AuditConfig.DISABLE_AUDIT_DDL_TABLES) > 0 {
 		for _, item := range r.AuditConfig.DISABLE_AUDIT_DDL_TABLES {
 			if item.DB == r.DB.Database && utils.IsContain(item.Tables, v.Table) {
-				r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DDL语法审核,原因: %s", r.DB.Database, v.Table, item.Reason))
+				r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DDL语法审核，原因：%s", r.DB.Database, v.Table, item.Reason))
 				r.IsSkipNextStep = true
 			}
 		}
@@ -39,7 +39,7 @@ func LogicAlterTableTiDBMerge(v *TraverseAlterTiDBMerge, r *Rule) {
 	dbVersionIns := process.DbVersion{Version: r.KV.Get("dbVersion").(string)}
 	if !r.AuditConfig.ENABLE_TIDB_MERGE_ALTER_TABLE && dbVersionIns.IsTiDB() {
 		if v.SpecsLen > 1 {
-			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`的多个操作,请拆分为多条ALTER语句(TiDB不支持在单个ALTER TABLE语句中进行多个更改)", v.Table))
+			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`的多个操作，请拆分为多条ALTER语句(TiDB不支持在单个ALTER TABLE语句中进行多个更改)", v.Table))
 		}
 	}
 }
@@ -129,7 +129,7 @@ func LogicAlterTableDropTiDBColWithCoveredIndex(v *TraverseAlterTableDropTiDBCol
 		for _, item := range vAudit.Redundant.IndexesCols {
 			if len(item.Cols) > 1 {
 				if utils.IsContain(item.Cols, col) {
-					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`DROP列`%s`操作失败,无法删除包含组合索引的列,当前列已经被组合索引%s(%s)覆盖【TiDB目前不支持删除主键列或组合索引相关列,请先删除复合索引`%s`】", v.Table, col, item.Index, strings.Join(item.Cols, ","), item.Index))
+					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`DROP列`%s`操作失败，无法删除包含组合索引的列，当前列已经被组合索引%s(%s)覆盖【TiDB目前不支持删除主键列或组合索引相关列，请先删除复合索引`%s`】", v.Table, col, item.Index, strings.Join(item.Cols, ","), item.Index))
 				}
 			}
 		}
@@ -224,7 +224,7 @@ func LogicAlterTableAddPrimaryKey(v *TraverseAlterTableAddPrimaryKey, r *Rule) {
 		for _, col := range v.Cols {
 			newPrimaryKeys = append(newPrimaryKeys, fmt.Sprintf("`%s`", col))
 		}
-		r.Summary = append(r.Summary, fmt.Sprintf("表`%s`已经存在主键`%s`,增加主键%+s失败", v.Table, strings.Join(vAudit.PrimaryKeys, ","), strings.Join(newPrimaryKeys, ",")))
+		r.Summary = append(r.Summary, fmt.Sprintf("表`%s`已经存在主键`%s`，增加主键%+s失败", v.Table, strings.Join(vAudit.PrimaryKeys, ","), strings.Join(newPrimaryKeys, ",")))
 	}
 }
 
@@ -607,7 +607,7 @@ func LogicAlterTableRenameIndex(v *TraverseAlterTableRenameIndex, r *Rule) {
 		// 检查索引名合法性
 		if r.AuditConfig.CHECK_IDENTIFIER {
 			if ok := utils.IsMatchPattern(utils.NamePattern, item.NewIndex); !ok {
-				r.Summary = append(r.Summary, fmt.Sprintf("索引`%s`命名不符合要求,仅允许匹配正则`%s`[表`%s`]", item.NewIndex, utils.NamePattern, v.Table))
+				r.Summary = append(r.Summary, fmt.Sprintf("索引`%s`命名不符合要求，仅允许匹配正则`%s`[表`%s`]", item.NewIndex, utils.NamePattern, v.Table))
 			}
 		}
 	}

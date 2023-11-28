@@ -31,7 +31,7 @@ type TableOptions struct {
 // 检查表名长度
 func (t *TableOptions) CheckTableLength() error {
 	if utf8.RuneCountInString(t.Table) > t.AuditConfig.MAX_TABLE_NAME_LENGTH {
-		return fmt.Errorf("表名`%s`命名长度超出限制,最大字符数%d", t.Table, t.AuditConfig.MAX_TABLE_NAME_LENGTH)
+		return fmt.Errorf("表名`%s`命名长度超出限制，最大字符数%d", t.Table, t.AuditConfig.MAX_TABLE_NAME_LENGTH)
 	}
 	return nil
 }
@@ -40,7 +40,7 @@ func (t *TableOptions) CheckTableLength() error {
 func (t *TableOptions) CheckTableIdentifer() error {
 	if t.AuditConfig.CHECK_IDENTIFIER {
 		if ok := utils.IsMatchPattern(utils.NamePattern, t.Table); !ok {
-			return fmt.Errorf("表`%s`的命名不符合要求,仅允许匹配正则`%s`", t.Table, utils.NamePattern)
+			return fmt.Errorf("表`%s`的命名不符合要求，仅允许匹配正则`%s`", t.Table, utils.NamePattern)
 		}
 	}
 	return nil
@@ -59,11 +59,11 @@ func (t *TableOptions) CheckTableIdentiferKeyword() error {
 // 检查存储引擎
 func (t *TableOptions) CheckTableEngine() error {
 	if t.Type == "create" && len(t.Engine) == 0 {
-		return fmt.Errorf("表`%s`必须显式指定存储引擎,支持的存储引擎为%s", t.Table, t.AuditConfig.TABLE_SUPPORT_ENGINE)
+		return fmt.Errorf("表`%s`必须显式指定存储引擎，支持的存储引擎为%s", t.Table, t.AuditConfig.TABLE_SUPPORT_ENGINE)
 	}
 	if len(t.Engine) > 0 {
 		if !utils.IsContain(t.AuditConfig.TABLE_SUPPORT_ENGINE, t.Engine) {
-			return fmt.Errorf("表`%s`指定的存储引擎`%s`不符合要求,支持的存储引擎为`%s`", t.Table, t.Engine, t.AuditConfig.TABLE_SUPPORT_ENGINE)
+			return fmt.Errorf("表`%s`指定的存储引擎`%s`不符合要求，支持的存储引擎为`%s`", t.Table, t.Engine, t.AuditConfig.TABLE_SUPPORT_ENGINE)
 		}
 	}
 	return nil
@@ -93,7 +93,7 @@ func (t *TableOptions) CheckTableComment() error {
 			return fmt.Errorf("表`%s`的注释不能为空或空字符", t.Table)
 		}
 		if t.HasComment && utf8.RuneCountInString(strings.TrimSpace(t.Comment)) > t.AuditConfig.TABLE_COMMENT_LENGTH {
-			return fmt.Errorf("表`%s`的注释长度超出限制,最大字符限制为%d", t.Table, t.AuditConfig.TABLE_COMMENT_LENGTH)
+			return fmt.Errorf("表`%s`的注释长度超出限制，最大字符限制为%d", t.Table, t.AuditConfig.TABLE_COMMENT_LENGTH)
 		}
 	}
 	return nil

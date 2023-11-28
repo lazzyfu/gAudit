@@ -26,7 +26,7 @@ func LogicDropTable(v *TraverseDropTable, r *Rule) {
 			for _, item := range r.AuditConfig.DISABLE_AUDIT_DDL_TABLES {
 				for _, table := range v.Tables {
 					if item.DB == r.DB.Database && utils.IsContain(item.Tables, table) {
-						r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DDL语法审核,原因: %s", r.DB.Database, table, item.Reason))
+						r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DDL语法审核，原因: %s", r.DB.Database, table, item.Reason))
 					}
 				}
 			}
@@ -54,7 +54,7 @@ func LogicTruncateTable(v *TraverseTruncateTable, r *Rule) {
 		if len(r.AuditConfig.DISABLE_AUDIT_DDL_TABLES) > 0 {
 			for _, item := range r.AuditConfig.DISABLE_AUDIT_DDL_TABLES {
 				if item.DB == r.DB.Database && utils.IsContain(item.Tables, v.Table) {
-					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DDL语法审核,原因: %s", r.DB.Database, v.Table, item.Reason))
+					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DDL语法审核，原因: %s", r.DB.Database, v.Table, item.Reason))
 				}
 			}
 		}

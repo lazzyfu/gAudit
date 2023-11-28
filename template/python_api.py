@@ -33,12 +33,12 @@ class GAuditApi(object):
                 headers=header
             )
         except requests.exceptions.ConnectionError as err:
-            return 500, f"请求审核服务器gAudit异常,请联系DBA,错误信息:{err.args[0]}"
+            return 500, f"请求审核服务器gAudit异常，请联系DBA，错误信息:{err.args[0]}"
 
         if resp.status_code == 200:
             return resp.status_code, resp.json()
 
-        return resp.status_code, f"请求审核服务器gAudit异常,请联系DBA;Code:{resp.status_code} Reason:{resp.reason}"
+        return resp.status_code, f"请求审核服务器gAudit异常，请联系DBA;Code:{resp.status_code} Reason:{resp.reason}"
 
     def check(self):
         """判断语法检查是否通过
@@ -86,7 +86,7 @@ print(f"msg: {msg}")
 返回数据: [
     {
         "summary": [
-            "当前DELETE语句最大影响或扫描行数超过了最大允许值1【建议:您可以将语句拆分为多条,保证每条语句影响或扫描行数小于最大允许值1】"
+            "当前DELETE语句最大影响或扫描行数超过了最大允许值1【建议您将语句拆分为多条，保证每条语句影响或扫描行数小于最大允许值1】"
         ],
         "level": "WARN",
         "affected_rows": 2,

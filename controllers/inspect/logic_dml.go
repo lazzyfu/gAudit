@@ -20,7 +20,7 @@ func LogicDisableAuditDMLTables(v *TraverseDisableAuditDMLTables, r *Rule) {
 		for _, item := range r.AuditConfig.DISABLE_AUDIT_DML_TABLES {
 			for _, table := range v.Tables {
 				if item.DB == r.DB.Database && utils.IsContain(item.Tables, table) {
-					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DML语法审核,原因: %s", r.DB.Database, table, item.Reason))
+					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DML语法审核，原因: %s", r.DB.Database, table, item.Reason))
 					r.IsSkipNextStep = true
 				}
 			}
@@ -96,7 +96,7 @@ func LogicDMLInsertWithColumns(v *TraverseDMLInsertWithColumns, r *Rule) {
 		r.Summary = append(r.Summary, fmt.Sprintf("%s语句指定的列数量和值的数量不匹配", v.DMLType))
 	}
 	if v.RowsCount > r.AuditConfig.MAX_INSERT_ROWS {
-		r.Summary = append(r.Summary, fmt.Sprintf("%s语句单次最多允许的行数为%d,当前行数为%d【建议拆分为多条%s语句】", v.DMLType, r.AuditConfig.MAX_INSERT_ROWS, v.RowsCount, v.DMLType))
+		r.Summary = append(r.Summary, fmt.Sprintf("%s语句单次最多允许的行数为%d，当前行数为%d【建议拆分为多条%s语句】", v.DMLType, r.AuditConfig.MAX_INSERT_ROWS, v.RowsCount, v.DMLType))
 	}
 }
 
@@ -145,7 +145,7 @@ func LogicDMLMaxUpdateRows(v *TraverseDMLMaxUpdateRows, r *Rule) {
 	}
 	if affectedRows > r.AuditConfig.MAX_AFFECTED_ROWS {
 		r.AffectedRows = affectedRows
-		r.Summary = append(r.Summary, fmt.Sprintf("当前%s语句最大影响或扫描行数超过了最大允许值%d【建议:您可以将语句拆分为多条,保证每条语句影响或扫描行数小于最大允许值%d】", v.DMLType, r.AuditConfig.MAX_AFFECTED_ROWS, r.AuditConfig.MAX_AFFECTED_ROWS))
+		r.Summary = append(r.Summary, fmt.Sprintf("当前%s语句最大影响或扫描行数超过了最大允许值%d【建议您将语句拆分为多条，保证每条语句影响或扫描行数小于最大允许值%d】", v.DMLType, r.AuditConfig.MAX_AFFECTED_ROWS, r.AuditConfig.MAX_AFFECTED_ROWS))
 		r.IsSkipNextStep = true
 		return
 	}

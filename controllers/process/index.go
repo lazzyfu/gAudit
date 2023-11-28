@@ -31,7 +31,7 @@ func (i *IndexPrefix) CheckUniquePrefix() error {
 	for _, key := range i.UniqueKeys {
 		if i.AuditConfig.CHECK_IDENTIFIER {
 			if ok := utils.IsMatchPattern(utils.NamePattern, key); !ok {
-				return fmt.Errorf("索引`%s`命名不符合要求,仅允许匹配正则`%s`[表`%s`]", key, utils.NamePattern, i.Table)
+				return fmt.Errorf("索引`%s`命名不符合要求，仅允许匹配正则`%s`[表`%s`]", key, utils.NamePattern, i.Table)
 			}
 		}
 		if len(key) == 0 {
@@ -42,7 +42,7 @@ func (i *IndexPrefix) CheckUniquePrefix() error {
 		}
 	}
 	if len(unMatchKeys) > 0 {
-		return fmt.Errorf("唯一索引前缀不符合要求,必须以`%s`开头(不区分大小写)[表`%s`]", i.AuditConfig.UNQI_INDEX_PREFIX, i.Table)
+		return fmt.Errorf("唯一索引前缀不符合要求，必须以`%s`开头(不区分大小写)[表`%s`]", i.AuditConfig.UNQI_INDEX_PREFIX, i.Table)
 	}
 	return nil
 }
@@ -52,7 +52,7 @@ func (i *IndexPrefix) CheckSecondaryPrefix() error {
 	for _, key := range i.SecondaryKeys {
 		if i.AuditConfig.CHECK_IDENTIFIER {
 			if ok := utils.IsMatchPattern(utils.NamePattern, key); !ok {
-				return fmt.Errorf("索引`%s`命名不符合要求,仅允许匹配正则`%s`[表`%s`]", key, utils.NamePattern, i.Table)
+				return fmt.Errorf("索引`%s`命名不符合要求，仅允许匹配正则`%s`[表`%s`]", key, utils.NamePattern, i.Table)
 			}
 		}
 		if len(key) == 0 {
@@ -63,7 +63,7 @@ func (i *IndexPrefix) CheckSecondaryPrefix() error {
 		}
 	}
 	if len(unMatchKeys) > 0 {
-		return fmt.Errorf("二级索引前缀不符合要求,必须以`%s`开头(不区分大小写)[表`%s`]", i.AuditConfig.SECONDARY_INDEX_PREFIX, i.Table)
+		return fmt.Errorf("二级索引前缀不符合要求，必须以`%s`开头(不区分大小写)[表`%s`]", i.AuditConfig.SECONDARY_INDEX_PREFIX, i.Table)
 	}
 	return nil
 }
@@ -73,7 +73,7 @@ func (i *IndexPrefix) CheckFulltextPrefix() error {
 	for _, key := range i.FulltextKeys {
 		if i.AuditConfig.CHECK_IDENTIFIER {
 			if ok := utils.IsMatchPattern(utils.NamePattern, key); !ok {
-				return fmt.Errorf("索引`%s`命名不符合要求,仅允许匹配正则`%s`[表`%s`]", key, utils.NamePattern, i.Table)
+				return fmt.Errorf("索引`%s`命名不符合要求，仅允许匹配正则`%s`[表`%s`]", key, utils.NamePattern, i.Table)
 			}
 		}
 		if len(key) == 0 {
@@ -84,7 +84,7 @@ func (i *IndexPrefix) CheckFulltextPrefix() error {
 		}
 	}
 	if len(unMatchKeys) > 0 {
-		return fmt.Errorf("全文索引前缀不符合要求,必须以`%s`开头(不区分大小写)[表`%s`]", i.AuditConfig.FULLTEXT_INDEX_PREFIX, i.Table)
+		return fmt.Errorf("全文索引前缀不符合要求，必须以`%s`开头(不区分大小写)[表`%s`]", i.AuditConfig.FULLTEXT_INDEX_PREFIX, i.Table)
 	}
 	return nil
 }
@@ -104,7 +104,7 @@ type IndexNumber struct {
 // 最多有N个二级索引,包括唯一索引
 func (i *IndexNumber) CheckSecondaryIndexesNum() error {
 	if i.Number > i.AuditConfig.MAX_INDEX_KEYS {
-		return fmt.Errorf("表`%s`最多允许定义%d个二级索引,当前二级索引个数为%d", i.Table, i.AuditConfig.MAX_INDEX_KEYS, i.Number)
+		return fmt.Errorf("表`%s`最多允许定义%d个二级索引，当前二级索引个数为%d", i.Table, i.AuditConfig.MAX_INDEX_KEYS, i.Number)
 	}
 	return nil
 }
@@ -289,7 +289,7 @@ func (r *RedundantIndex) CheckRedundantColsWithDiffIndexes() error {
 			}
 		}
 		if len(result) > 0 {
-			return fmt.Errorf("表`%s`发现了冗余索引,冗余索引的字段组合为%s", r.Table, strings.Join(result, ", "))
+			return fmt.Errorf("表`%s`发现了冗余索引，冗余索引的字段组合为%s", r.Table, strings.Join(result, ", "))
 		}
 	} else {
 		// 为alter table xxx add / drop index
@@ -304,7 +304,7 @@ func (r *RedundantIndex) CheckRedundantColsWithDiffIndexes() error {
 			}
 		}
 		if len(result) > 0 {
-			return fmt.Errorf("表`%s`发现了冗余索引,冗余索引的字段组合为%s", r.Table, strings.Join(result, ", "))
+			return fmt.Errorf("表`%s`发现了冗余索引，冗余索引的字段组合为%s", r.Table, strings.Join(result, ", "))
 		}
 	}
 	return nil
@@ -383,7 +383,7 @@ func (l *LargePrefix) Check(kv *kv.KVCache) error {
 
 		logger.AppLog.Debug(fmt.Sprintf("maxSumLength:%d, indexMaxLength:%d", maxSumLength, indexMaxLength))
 		if maxSumLength > indexMaxLength {
-			return fmt.Errorf("表`%s`的索引`%s`超出了innodb-large-prefix限制,当前索引长度为%d字节,最大限制为%d字节【例如:可使用前缀索引,如:Field(length)】", l.Table, i.Name, maxSumLength, indexMaxLength)
+			return fmt.Errorf("表`%s`的索引`%s`超出了innodb-large-prefix限制，当前索引长度为%d字节，最大限制为%d字节【例如可使用前缀索引,如:Field(length)】", l.Table, i.Name, maxSumLength, indexMaxLength)
 		}
 	}
 	return nil

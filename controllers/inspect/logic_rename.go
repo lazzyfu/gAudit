@@ -24,7 +24,7 @@ func LogicRenameTable(v *TraverseRenameTable, r *Rule) {
 	if len(r.AuditConfig.DISABLE_AUDIT_DDL_TABLES) > 0 {
 		for _, item := range r.AuditConfig.DISABLE_AUDIT_DDL_TABLES {
 			if item.DB == r.DB.Database && utils.IsContain(item.Tables, v.OldTable) {
-				r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DDL语法审核,原因: %s", r.DB.Database, v.OldTable, item.Reason))
+				r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DDL语法审核，原因: %s", r.DB.Database, v.OldTable, item.Reason))
 			}
 		}
 	}

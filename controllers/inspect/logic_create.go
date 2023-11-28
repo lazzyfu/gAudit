@@ -114,10 +114,10 @@ func LogicCreateTableAuditCols(v *TraverseCreateTableAuditCols, r *Rule) {
 			}
 		}
 		if !utils.IsContain(colsOptionsArray, "DEFAULT CURRENT_TIMESTAMP") {
-			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`未定义字段类型为%s的审计字段【例如:CREATED_AT datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'】", v.Table, "DEFAULT CURRENT_TIMESTAMP"))
+			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`未定义字段类型为%s的审计字段【例如：CREATED_AT datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'】", v.Table, "DEFAULT CURRENT_TIMESTAMP"))
 		}
 		if !utils.IsContain(colsOptionsArray, "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP") {
-			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`未定义字段类型为%s的审计字段【例如:UPDATED_AT datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'】", v.Table, "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`未定义字段类型为%s的审计字段【例如：UPDATED_AT datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'】", v.Table, "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 		}
 	}
 }

@@ -48,7 +48,7 @@ func ShowCreateTable(table string, db *utils.DB, kv *kv.KVCache) (data interface
 		return nil, fmt.Errorf("Parse Warning: %s", utils.ErrsJoin("; ", warns))
 	}
 	if err != nil {
-		return nil, fmt.Errorf("SQL语法解析错误:%s", err.Error())
+		return nil, fmt.Errorf("SQL语法解析错误：%s", err.Error())
 	}
 	kv.Put(table, data)
 	return data, nil

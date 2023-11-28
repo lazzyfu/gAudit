@@ -134,7 +134,7 @@ func (c *Checker) Parse() error {
 		return fmt.Errorf("Parse Warning: %s", utils.ErrsJoin("; ", warns))
 	}
 	if err != nil {
-		return fmt.Errorf("sql解析错误:%s", err.Error())
+		return fmt.Errorf("sql解析错误：%s", err.Error())
 	}
 	return nil
 }
@@ -318,7 +318,7 @@ func (c *Checker) MergeAlter(kv *kv.KVCache, mergeAlters []string) ReturnData {
 	if c.AuditConfig.ENABLE_MYSQL_MERGE_ALTER_TABLE && !dbVersionIns.IsTiDB() {
 		if ok, val := utils.IsRepeat(mergeAlters); ok {
 			for _, v := range val {
-				data.Summary = append(data.Summary, fmt.Sprintf("[MySQL数据库]表`%s`的多条ALTER操作,请合并为一条ALTER语句", v))
+				data.Summary = append(data.Summary, fmt.Sprintf("[MySQL数据库]表`%s`的多条ALTER操作，请合并为一条ALTER语句", v))
 			}
 		}
 	}
@@ -340,7 +340,7 @@ func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 	// 获取目标数据库变量
 	dbVars, err := GetDBVars(c.DB)
 	if err != nil {
-		errMsg := fmt.Sprintf("获取DB变量失败:%s", err.Error())
+		errMsg := fmt.Sprintf("获取DB变量失败：%s", err.Error())
 		logger.AppLog.WithFields(logrus.Fields{"request_id": RequestID}).Error(errMsg)
 		return fmt.Errorf(errMsg), returnData
 	}
@@ -367,7 +367,7 @@ func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 		case *ast.SelectStmt:
 			// select语句不允许审核
 			var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DML", Level: "WARN"}
-			data.Summary = append(data.Summary, "发现SELECT语句,请删除SELECT语句后重新审核")
+			data.Summary = append(data.Summary, "发现SELECT语句，请删除SELECT语句后重新审核")
 			returnData = append(returnData, data)
 		case *ast.CreateTableStmt:
 			returnData = append(returnData, c.CreateTableStmt(stmt, kv, fingerId))
@@ -388,7 +388,7 @@ func (c *Checker) Check(RequestID string) (err error, returnData []ReturnData) {
 		default:
 			// 不允许的其他语句，有需求可以扩展
 			var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "", Level: "WARN"}
-			data.Summary = append(data.Summary, "不被允许的审核语句,请联系数据库管理员")
+			data.Summary = append(data.Summary, "不被允许的审核语句，请联系数据库管理员")
 			returnData = append(returnData, data)
 		}
 	}
