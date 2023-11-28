@@ -29,8 +29,6 @@ func (c *TraverseRenameTable) Enter(in ast.Node) (ast.Node, bool) {
 				OldTable: t.OldTable.Name.String(),
 				NewTable: t.NewTable.Name.String(),
 			})
-			// c.OldTable = t.OldTable.Name.String()
-			// c.NewTable = t.NewTable.Name.String()
 		}
 	}
 	return in, false
