@@ -443,6 +443,8 @@ func (c *TraverseAlterTableAddIndexRepeatDefine) Leave(in ast.Node) (ast.Node, b
 // TraverseAlterTableRedundantIndexes
 type TraverseAlterTableRedundantIndexes struct {
 	Table     string                 // 表名
+	AddCols   []string               // add的列，用于检查alter table xxx add `col1` xxx,add index idx_col1(`col1`)
+	DropCols  []string               // drop的列，用于检查alter table xxx drop `col2`,add index idx_col2(`col2`);
 	IsMatch   int                    // 是否匹配当前规则
 	Redundant process.RedundantIndex // 冗余索引
 }
@@ -453,6 +455,12 @@ func (c *TraverseAlterTableRedundantIndexes) Enter(in ast.Node) (ast.Node, bool)
 		c.Redundant.Table = stmt.Table.Name.String()
 		for _, spec := range stmt.Specs {
 			switch spec.Tp {
+			case ast.AlterTableAddColumns:
+				for _, col := range spec.NewColumns {
+					c.AddCols = append(c.AddCols, col.Name.String())
+				}
+			case ast.AlterTableDropColumn:
+				c.DropCols = append(c.DropCols, spec.OldColumnName.Name.O)
 			case ast.AlterTableDropIndex:
 				c.IsMatch++
 				c.Redundant.IndexesCols = append(c.Redundant.IndexesCols, process.IndexColsMap{Index: spec.Name, Tag: "is_drop"})

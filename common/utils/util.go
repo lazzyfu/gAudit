@@ -132,3 +132,23 @@ func MaxInt(items []int) int {
 	}
 	return maxVal
 }
+
+func RemoveElements(arr []string, toRemove []string) []string {
+	// 创建一个map，用于快速查找要删除的元素
+	removeMap := make(map[string]bool)
+	for _, val := range toRemove {
+		removeMap[val] = true
+	}
+
+	// 创建一个新的切片，用于存储不包含要删除元素的值
+	result := []string{}
+
+	// 遍历原始切片，将不在要删除元素中的值添加到新的切片中
+	for _, val := range arr {
+		if !removeMap[val] {
+			result = append(result, val)
+		}
+	}
+
+	return result
+}
