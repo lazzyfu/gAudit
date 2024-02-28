@@ -4,7 +4,7 @@
 ![Download](https://img.shields.io/github/downloads/lazzyfu/gAudit/total?style=flat-square)
 ![License](https://img.shields.io/github/license/lazzyfu/gAudit?style=flat-square)
 
-gAudit是基于golang语言实现的一个SQL语法审核工具，支持MySQL/TiDB，通过解析SQL语法树实现语法规则审核
+gAudit是基于golang语言实现的一个SQL语法审核工具，支持MySQL/TiDB，通过解析SQL语法树实现语法规则审核。
 
 ## 实践文档
 - [快速开始](docs/start.md)
