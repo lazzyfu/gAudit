@@ -3,10 +3,12 @@
 ![GO](https://img.shields.io/badge/go-1.18-brightgreen.svg?style=flat-square)
 ![Download](https://img.shields.io/github/downloads/lazzyfu/gAudit/total?style=flat-square)
 ![License](https://img.shields.io/github/license/lazzyfu/gAudit?style=flat-square)
+[![release](https://img.shields.io/github/v/release/lazzyfu/gAudit.svg)](https://github.com/lazzyfu/gAudit/releases)
+<img alt="Github Stars" src="https://img.shields.io/github/stars/lazzyfu/gAudit?logo=github">
 
 gAudit是基于golang语言实现的一个SQL语法审核工具，支持MySQL/TiDB，通过解析SQL语法树实现语法规则审核。
 
-## 实践文档
+## 文档
 - [快速开始](docs/start.md)
 - [审核参数](docs/parameters.md)
 - [审核规则](docs/rules.md)
@@ -16,7 +18,7 @@ gAudit是基于golang语言实现的一个SQL语法审核工具，支持MySQL/Ti
 * [tidb parser](https://github.com/pingcap/tidb/tree/master/parser)
 
 
-## 使用
+## 使用方法
 > 服务端口依赖于您启动指定的端口，下面8081端口为举例
 
 | API                                         | 请求方法 | 用途     | 备注                                     |
