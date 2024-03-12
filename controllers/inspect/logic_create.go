@@ -244,9 +244,9 @@ func LogicCreateTableInnodbLargePrefix(v *TraverseCreateTableInnodbLargePrefix, 
 	}
 }
 
-// LogicCreateTableRowSizeTooLarge
-func LogicCreateTableRowSizeTooLarge(v *TraverseCreateTableRowSizeTooLarge, r *Rule) {
-	var rowSizeTooLarge process.RowSizeTooLarge = v.RowSizeTooLarge
+// LogicCreateTableInnoDBRowSize
+func LogicCreateTableInnoDBRowSize(v *TraverseCreateTableInnoDBRowSize, r *Rule) {
+	var rowSizeTooLarge process.InnoDBRowSize = v.InnoDBRowSize
 	if err := rowSizeTooLarge.Check(r.KV); err != nil {
 		r.Summary = append(r.Summary, err.Error())
 	}

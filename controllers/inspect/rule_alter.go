@@ -94,7 +94,7 @@ func AlterTableRules() []Rule {
 		},
 		{
 			Hint:      "AlterTable#检查表定义的行是否超过65535",
-			CheckFunc: (*Rule).RuleAlterTableRowSizeTooLarge,
+			CheckFunc: (*Rule).RuleAlterTableInnoDBRowSize,
 		},
 	}
 }
@@ -239,9 +239,9 @@ func (r *Rule) RuleAlterTableInnodbLargePrefix(tistmt *ast.StmtNode) {
 	LogicAlterTableInnodbLargePrefix(v, r)
 }
 
-// RuleAlterTableRowSizeTooLarge
-func (r *Rule) RuleAlterTableRowSizeTooLarge(tistmt *ast.StmtNode) {
-	v := &TraverseAlterTableRowSizeTooLarge{}
+// RuleAlterTableInnoDBRowSize
+func (r *Rule) RuleAlterTableInnoDBRowSize(tistmt *ast.StmtNode) {
+	v := &TraverseAlterTableInnoDBRowSize{}
 	(*tistmt).Accept(v)
-	LogicAlterTableRowSizeTooLarge(v, r)
+	LogicAlterTableInnoDBRowSize(v, r)
 }

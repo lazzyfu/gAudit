@@ -673,8 +673,8 @@ func LogicAlterTableInnodbLargePrefix(v *TraverseAlterTableInnodbLargePrefix, r 
 	}
 }
 
-// LogicAlterTableRowSizeTooLarge
-func LogicAlterTableRowSizeTooLarge(v *TraverseAlterTableRowSizeTooLarge, r *Rule) {
+// LogicAlterTableInnoDBRowSize
+func LogicAlterTableInnoDBRowSize(v *TraverseAlterTableInnoDBRowSize, r *Rule) {
 	if v.IsMatch == 0 {
 		return
 	}
@@ -687,28 +687,28 @@ func LogicAlterTableRowSizeTooLarge(v *TraverseAlterTableRowSizeTooLarge, r *Rul
 		return
 	}
 	// 解析获取的db表结构
-	vAudit := &TraverseCreateTableRowSizeTooLarge{}
+	vAudit := &TraverseCreateTableInnoDBRowSize{}
 	switch audit := audit.(type) {
 	case *config.Audit:
 		(audit.TiStmt[0]).Accept(vAudit)
 	}
 	// 拷贝，如果Column不存在append，Column存在，重新赋值
-	for _, v := range v.RowSizeColsMaps {
-		if index, ok := func(v process.RowSizeTooLargePartSpecification) (int, bool) {
-			for i, vv := range vAudit.RowSizeTooLarge.RowSizeTooLargeColsMaps {
+	for _, v := range v.ColsMaps {
+		if index, ok := func(v process.PartSpecification) (int, bool) {
+			for i, vv := range vAudit.ColsMaps {
 				if strings.EqualFold(v.Column, vv.Column) {
 					return i, true
 				}
 			}
 			return 0, false
 		}(v); !ok {
-			vAudit.RowSizeTooLarge.RowSizeTooLargeColsMaps = append(vAudit.RowSizeTooLarge.RowSizeTooLargeColsMaps, v)
+			vAudit.InnoDBRowSize.ColsMaps = append(vAudit.ColsMaps, v)
 		} else {
-			vAudit.RowSizeTooLarge.RowSizeTooLargeColsMaps[index] = v
+			vAudit.ColsMaps[index] = v
 		}
 
 	}
-	var rowSizeTooLarge process.RowSizeTooLarge = vAudit.RowSizeTooLarge
+	var rowSizeTooLarge process.InnoDBRowSize = vAudit.InnoDBRowSize
 	if err := rowSizeTooLarge.Check(r.KV); err != nil {
 		r.Summary = append(r.Summary, err.Error())
 	}
