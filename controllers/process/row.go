@@ -2,7 +2,7 @@ package process
 
 import (
 	"fmt"
-	"sqlSyntaxAudit/common/kv"
+	"gAudit/pkg/kv"
 	"strings"
 
 	"github.com/jinzhu/copier"

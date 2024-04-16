@@ -7,10 +7,7 @@
 package config
 
 import (
-	"encoding/json"
-	"os"
-
-	"github.com/pingcap/tidb/parser/ast"
+	"github.com/pingcap/tidb/pkg/parser/ast"
 )
 
 type Audit struct {
@@ -49,6 +46,7 @@ type AuditConfiguration struct {
 	ENABLE_FOREIGN_KEY                   bool                // 是否启用外键
 	CHECK_TABLE_AUTOINCREMENT_INIT_VALUE bool                // 检查建表是自增列初始值是否为1
 	ENABLE_CREATE_VIEW                   bool                // 是否支持创建和使用视图
+	INNODB_ROW_FORMAT                    []string            // InnoDB表支持的行格式
 	// COLUMN
 	MAX_COLUMN_NAME_LENGTH               int  // 列名的长度
 	CHECK_COLUMN_CHARSET                 bool // 是否检查列的字符集
@@ -106,7 +104,7 @@ type AuditConfiguration struct {
 	DISABLE_AUDIT_DDL_TABLES []DisableTablesAudit // 禁止指定的表的DDL语句进行审核
 }
 
-func newAuditConfiguration() *AuditConfiguration {
+func NewAuditConfiguration() *AuditConfiguration {
 	return &AuditConfiguration{
 		ListenAddress:                        "127.0.0.1:8081",
 		LogFilePath:                          "./logs",
@@ -129,6 +127,7 @@ func newAuditConfiguration() *AuditConfiguration {
 		ENABLE_FOREIGN_KEY:                   false,
 		CHECK_TABLE_AUTOINCREMENT_INIT_VALUE: true,
 		ENABLE_CREATE_VIEW:                   true,
+		INNODB_ROW_FORMAT:                    []string{"DYNAMIC"},
 		MAX_COLUMN_NAME_LENGTH:               64,
 		CHECK_COLUMN_CHARSET:                 true,
 		CHECK_COLUMN_COMMENT:                 true,
@@ -180,21 +179,4 @@ func newAuditConfiguration() *AuditConfiguration {
 		DISABLE_AUDIT_DML_TABLES:             []DisableTablesAudit{},
 		DISABLE_AUDIT_DDL_TABLES:             []DisableTablesAudit{},
 	}
-}
-
-func InitializeAuditConfig(configFile string) *AuditConfiguration {
-	var AuditConfig = newAuditConfiguration()
-
-	// 读取JSON配置文件
-	file, err := os.Open(configFile)
-	if err != nil {
-		panic(err)
-	}
-	decoder := json.NewDecoder(file)
-	// 将配置文件值赋值给初始化默认值的AuditConfig
-	err = decoder.Decode(AuditConfig)
-	if err != nil {
-		panic(err)
-	}
-	return AuditConfig
 }

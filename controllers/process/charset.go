@@ -8,9 +8,9 @@ package process
 
 import (
 	"fmt"
-	"sqlSyntaxAudit/common/utils"
+	"gAudit/pkg/utils"
 
-	"github.com/pingcap/tidb/parser/mysql"
+	"github.com/pingcap/tidb/pkg/parser/mysql"
 )
 
 // 字符集

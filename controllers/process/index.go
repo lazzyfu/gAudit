@@ -8,9 +8,9 @@ package process
 
 import (
 	"fmt"
-	"sqlSyntaxAudit/common/kv"
-	"sqlSyntaxAudit/common/utils"
-	"sqlSyntaxAudit/config"
+	"gAudit/config"
+	"gAudit/pkg/kv"
+	"gAudit/pkg/utils"
 	"strings"
 
 	"github.com/jinzhu/copier"

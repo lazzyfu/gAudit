@@ -9,14 +9,14 @@ package process
 import (
 	"bytes"
 	"fmt"
-	"sqlSyntaxAudit/common/kv"
-	"sqlSyntaxAudit/common/utils"
-	"sqlSyntaxAudit/config"
+	"gAudit/config"
+	"gAudit/pkg/kv"
+	"gAudit/pkg/utils"
 	"strconv"
 	"strings"
 	"unicode/utf8"
 
-	"github.com/pingcap/tidb/parser/mysql"
+	"github.com/pingcap/tidb/pkg/parser/mysql"
 )
 
 // 检查列的属性

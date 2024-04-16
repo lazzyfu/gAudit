@@ -59,7 +59,7 @@ class GAuditApi(object):
 # 使用
 sql_text = "delete from test_case where id > 1"
 cfg = {
-    "db_user": "sqlsyntaxaudit_rw",
+    "db_user": "gAudit_rw",
     "db_password": "1234.com",
     "db_host": "127.0.0.1",
     "db_port": 3306,

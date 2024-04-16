@@ -8,9 +8,9 @@ package process
 
 import (
 	"fmt"
-	"sqlSyntaxAudit/config"
+	"gAudit/config"
 
-	"github.com/pingcap/tidb/parser/mysql"
+	"github.com/pingcap/tidb/pkg/parser/mysql"
 )
 
 type PrimaryKey struct {

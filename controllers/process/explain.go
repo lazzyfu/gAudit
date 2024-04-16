@@ -8,8 +8,9 @@ package process
 
 import (
 	"errors"
-	"sqlSyntaxAudit/common/kv"
-	"sqlSyntaxAudit/common/utils"
+	"gAudit/controllers/dao"
+	"gAudit/pkg/kv"
+	"gAudit/pkg/utils"
 	"strconv"
 	"strings"
 
@@ -27,7 +28,7 @@ type ExplainOutput struct {
 }
 
 type Explain struct {
-	DB  *utils.DB
+	DB  *dao.DB
 	SQL string
 	KV  *kv.KVCache
 }

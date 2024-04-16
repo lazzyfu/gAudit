@@ -9,10 +9,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"sqlSyntaxAudit/config"
-	"sqlSyntaxAudit/global"
-	logger "sqlSyntaxAudit/middleware/log"
-	"sqlSyntaxAudit/routers"
+	"gAudit/bootstrap"
+	"gAudit/global"
+	"gAudit/middleware"
+	"gAudit/routers"
 
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
@@ -26,14 +26,15 @@ func main() {
 	flag.Parse()
 
 	// 初始化配置
-	global.App.AuditConfig = config.InitializeAuditConfig(*configFile)
+	global.App.AuditConfig = bootstrap.InitializeAuditConfig(*configFile)
+
+	// 初始化日志
+	bootstrap.InitializeLog()
 
 	r := gin.New()
-
 	r.Use(gin.Recovery())
-	logger.Setup()
 	r.Use(requestid.New())
-	r.Use(logger.LoggerToFile())
+	r.Use(middleware.LoggerRequestToFile())
 
 	// 路由
 	routers.SetupRouter(r)

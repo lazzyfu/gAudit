@@ -9,15 +9,15 @@ package extract
 import (
 	_ "embed"
 	"fmt"
-	"sqlSyntaxAudit/common/utils"
-	"sqlSyntaxAudit/config"
-	"sqlSyntaxAudit/controllers/parser"
-	"sqlSyntaxAudit/forms"
-	logger "sqlSyntaxAudit/middleware/log"
+	"gAudit/config"
+	"gAudit/controllers/parser"
+	"gAudit/forms"
+	"gAudit/global"
+	"gAudit/pkg/utils"
 	"sync"
 
-	"github.com/pingcap/tidb/parser/ast"
-	_ "github.com/pingcap/tidb/types/parser_driver"
+	"github.com/pingcap/tidb/pkg/parser/ast"
+	_ "github.com/pingcap/tidb/pkg/types/parser_driver"
 	"github.com/sirupsen/logrus"
 )
 
@@ -68,7 +68,7 @@ func (c *Checker) Extract(RequestID string) (error, []ReturnData) {
 	var returnData []ReturnData
 	err := c.Parse()
 	if err != nil {
-		logger.AppLog.WithFields(logrus.Fields{"request_id": RequestID}).Error(err)
+		global.App.Log.WithFields(logrus.Fields{"request_id": RequestID, "type": "App"}).Error(err)
 		return err, returnData
 	}
 	for _, stmt := range c.Audit.TiStmt {

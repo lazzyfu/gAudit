@@ -7,10 +7,10 @@
 package views
 
 import (
-	"sqlSyntaxAudit/common/response"
-	"sqlSyntaxAudit/controllers/extract"
-	"sqlSyntaxAudit/controllers/inspect"
-	"sqlSyntaxAudit/forms"
+	"gAudit/controllers/checker"
+	"gAudit/controllers/extract"
+	"gAudit/forms"
+	"gAudit/pkg/response"
 
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
@@ -18,18 +18,17 @@ import (
 
 func SyntaxInspect(c *gin.Context) {
 	var form forms.SyntaxAuditForm
-	var RequestID string = requestid.Get(c)
-	form.RequestID = RequestID
+	form.RequestID = requestid.Get(c)
 
 	if err := c.ShouldBind(&form); err != nil {
 		response.ValidateFail(c, err.Error())
 	} else {
-		checker := inspect.Checker{Form: form}
-		err, returnData := checker.Check(RequestID)
+		ch := checker.Checker{Form: form}
+		err, returnData := ch.Check()
 		if err != nil {
 			response.Fail(c, err.Error())
 		} else {
-			response.Success(c, returnData)
+			response.Success(c, returnData, "success")
 		}
 	}
 }
@@ -48,7 +47,7 @@ func ExtractTables(c *gin.Context) {
 		if err != nil {
 			response.Fail(c, err.Error())
 		} else {
-			response.Success(c, returnData)
+			response.Success(c, returnData, "success")
 		}
 	}
 }

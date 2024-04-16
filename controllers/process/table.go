@@ -7,8 +7,8 @@ package process
 
 import (
 	"fmt"
-	"sqlSyntaxAudit/common/utils"
-	"sqlSyntaxAudit/config"
+	"gAudit/config"
+	"gAudit/pkg/utils"
 	"strings"
 	"unicode/utf8"
 )

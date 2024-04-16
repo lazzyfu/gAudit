@@ -7,7 +7,7 @@
 package routers
 
 import (
-	"sqlSyntaxAudit/views"
+	"gAudit/views"
 
 	"github.com/gin-gonic/gin"
 )

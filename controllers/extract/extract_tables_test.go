@@ -2,11 +2,12 @@ package extract
 
 import (
 	"errors"
-	"sqlSyntaxAudit/config"
-	"sqlSyntaxAudit/forms"
-	"sqlSyntaxAudit/global"
-	logger "sqlSyntaxAudit/middleware/log"
+	"gAudit/config"
+	"gAudit/forms"
+	"gAudit/global"
+	"gAudit/middleware"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -16,7 +17,8 @@ func init() {
 	global.App.AuditConfig = &config.AuditConfiguration{
 		LogFilePath: "../../logs",
 	}
-	logger.Setup()
+	now := time.Now()
+	global.App.Log = middleware.InitLog(now.Format("2006-01-02") + ".log")
 }
 
 func TestChecker_Extract(t *testing.T) {
