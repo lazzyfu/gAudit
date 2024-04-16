@@ -213,6 +213,10 @@ func LogicCreateTableIndexesRepeatDefine(v *TraverseCreateTableIndexesRepeatDefi
 
 // LogicCreateTableRedundantIndexes
 func LogicCreateTableRedundantIndexes(v *TraverseCreateTableRedundantIndexes, r *Rule) {
+	// 判断是否允许冗余索引，允许则跳过
+	if r.AuditConfig.ENABLE_REDUNDANT_INDEX {
+		return
+	}
 	// 检查索引,建索引时,指定的列必须存在、索引中的列,不能重复、索引名不能重复
 	// 不能有重复的索引,包括(索引名不同,字段相同；冗余索引,如(a),(a,b))
 	var redundantIndexCheck process.RedundantIndex = v.Redundant

@@ -357,6 +357,10 @@ func LogicAlterTableRedundantIndexes(v *TraverseAlterTableRedundantIndexes, r *R
 	if v.IsMatch == 0 {
 		return
 	}
+	// 判断是否允许冗余索引，允许则跳过
+	if r.AuditConfig.ENABLE_REDUNDANT_INDEX {
+		return
+	}
 	r.MergeAlter = v.Table
 
 	// 检查索引,建索引时,指定的列必须存在、索引中的列,不能重复、索引名不能重复
