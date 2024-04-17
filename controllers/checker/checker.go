@@ -115,8 +115,8 @@ func (c *Checker) CustomParams() error {
 		if c.AuditConfig.MAX_COLUMN_NAME_LENGTH > 64 {
 			c.AuditConfig.MAX_COLUMN_NAME_LENGTH = 64
 		}
-		if c.AuditConfig.MAX_VARCHAR_LENGTH > 65535 {
-			c.AuditConfig.MAX_COLUMN_NAME_LENGTH = 65535
+		if c.AuditConfig.MAX_VARCHAR_LENGTH > 16383 {
+			c.AuditConfig.MAX_COLUMN_NAME_LENGTH = 16383
 		}
 	}()
 	return nil

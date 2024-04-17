@@ -39,7 +39,7 @@ curl --request POST '127.0.0.1:8081/api/v1/audit' \
     "db": "dbms_monitor",
     "timeout": 3000,
     "custom_audit_parameters": {"MAX_VARCHAR_LENGTH": 2000},
-    "sqltext": "alter table slamonitor modify `address` varchar(16554) NOT NULL DEFAULT '\'''\'' COMMENT '\''主机'\''"
+    "sqltext": "alter table slamonitor modify `address` varchar(16383) NOT NULL DEFAULT '\'''\'' COMMENT '\''主机'\''"
 }
 ' | jq
 ```
@@ -61,13 +61,13 @@ curl --request POST '127.0.0.1:8081/api/v1/audit' \
     "data": [
         {
             "summary": [
-                "列`host`最大允许定义的varchar长度为2000,当前varchar长度为16554[表`slamonitor`]"
+                "列`host`最大允许定义的varchar长度为2000,当前varchar长度为16383[表`slamonitor`]"
             ],
             "level": "WARN",
             "affected_rows": 0,
             "type": "DDL",
             "finger_id": "4B3E7A0DCAE81036",
-            "query": "alter table slamonitor modify `host` varchar(16554) NOT NULL DEFAULT '' COMMENT '主机'"
+            "query": "alter table slamonitor modify `host` varchar(16383) NOT NULL DEFAULT '' COMMENT '主机'"
         }
     ],
     "message": "success"

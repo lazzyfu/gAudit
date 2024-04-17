@@ -133,7 +133,7 @@ func NewAuditConfiguration() *AuditConfiguration {
 		CHECK_COLUMN_CHARSET:                 true,
 		CHECK_COLUMN_COMMENT:                 true,
 		COLUMN_MAX_CHAR_LENGTH:               64,
-		MAX_VARCHAR_LENGTH:                   65535,
+		MAX_VARCHAR_LENGTH:                   16383,
 		ENABLE_COLUMN_BLOB_TYPE:              true,
 		ENABLE_COLUMN_JSON_TYPE:              true,
 		ENABLE_COLUMN_BIT_TYPE:               true,
