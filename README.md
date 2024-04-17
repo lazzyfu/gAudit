@@ -1,6 +1,6 @@
 
 # gAudit
-![GO](https://img.shields.io/badge/go-1.18-brightgreen.svg?style=flat-square)
+![GO](https://img.shields.io/badge/go-1.21.8-brightgreen.svg?style=flat-square)
 ![Download](https://img.shields.io/github/downloads/lazzyfu/gAudit/total?style=flat-square)
 ![License](https://img.shields.io/github/license/lazzyfu/gAudit?style=flat-square)
 [![release](https://img.shields.io/github/v/release/lazzyfu/gAudit.svg)](https://github.com/lazzyfu/gAudit/releases)

@@ -69,6 +69,14 @@ func (t *TableOptions) CheckTableEngine() error {
 	return nil
 }
 
+// 检查表行格式
+func (t *TableOptions) CheckInnoDBRowFormat() error {
+	if !utils.IsContain(t.AuditConfig.INNODB_ROW_FORMAT, t.RowFormat) {
+		return fmt.Errorf("表`%s`允许设置的行格式为%s，当前ROW_FORMAT=%s", t.Table, strings.Join(t.AuditConfig.INNODB_ROW_FORMAT, ","), t.RowFormat)
+	}
+	return nil
+}
+
 // 检查表分区
 func (t *TableOptions) CheckTablePartition() error {
 	if !t.AuditConfig.ENABLE_PARTITION_TABLE && t.IsPartition {

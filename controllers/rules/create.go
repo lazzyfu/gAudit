@@ -213,7 +213,7 @@ func (r *Rule) RuleCreateTableInnoDBRowSize(tistmt *ast.StmtNode) {
 
 // RuleCreateTableInnoDBRowFormat
 func (r *Rule) RuleCreateTableInnoDBRowFormat(tistmt *ast.StmtNode) {
-	v := &traverses.TraverseCreateTableInnoDBRowFormat{}
+	v := &traverses.TraverseCreateTableOptions{}
 	(*tistmt).Accept(v)
 	logics.LogicCreateTableInnoDBRowFormat(v, r.RuleHint)
 }

@@ -110,6 +110,7 @@ type TraverseAlterTableOptions struct {
 func (c *TraverseAlterTableOptions) Enter(in ast.Node) (ast.Node, bool) {
 	if stmt, ok := in.(*ast.AlterTableStmt); ok {
 		c.Table = stmt.Table.Name.String()
+		c.RowFormat = "DEFAULT"
 		for _, spec := range stmt.Specs {
 			switch spec.Tp {
 			case ast.AlterTableOption:
@@ -126,7 +127,18 @@ func (c *TraverseAlterTableOptions) Enter(in ast.Node) (ast.Node, bool) {
 					case ast.TableOptionAutoIncrement:
 						c.AutoIncrement = node.UintValue
 					case ast.TableOptionRowFormat:
-						c.RowFormat = node.StrValue
+						switch node.UintValue {
+						case ast.RowFormatDefault:
+							c.RowFormat = "DEFAULT"
+						case ast.RowFormatDynamic:
+							c.RowFormat = "DYNAMIC"
+						case ast.RowFormatCompressed:
+							c.RowFormat = "COMPRESSED"
+						case ast.RowFormatRedundant:
+							c.RowFormat = "REDUNDANT"
+						case ast.RowFormatCompact:
+							c.RowFormat = "COMPACT"
+						}
 					case ast.TableOptionComment:
 						c.HasComment = true       // 表示有注释，代表不了注释为空
 						c.Comment = node.StrValue // 获取注释的值

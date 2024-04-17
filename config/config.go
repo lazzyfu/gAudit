@@ -78,6 +78,7 @@ type AuditConfiguration struct {
 	PRIMARYKEY_MAX_KEY_PARTS      int    // 组成主键索引的列数不能超过指定的个数
 	MAX_INDEX_KEYS                int    // 最多有N个索引,包括唯一索引/二级索引
 	ENABLE_INDEX_RENAME           bool   // 是否允许rename索引名
+	ENABLE_REDUNDANT_INDEX        bool   // 是否允许冗余索引
 	// ALTER
 	ENABLE_DROP_COLS               bool // 是否允许DROP列
 	ENABLE_DROP_INDEXES            bool // 是否允许DROP索引
@@ -157,6 +158,7 @@ func NewAuditConfiguration() *AuditConfiguration {
 		PRIMARYKEY_MAX_KEY_PARTS:             1,
 		MAX_INDEX_KEYS:                       12,
 		ENABLE_INDEX_RENAME:                  false,
+		ENABLE_REDUNDANT_INDEX:               false,
 		ENABLE_DROP_COLS:                     true,
 		ENABLE_DROP_INDEXES:                  true,
 		ENABLE_DROP_PRIMARYKEY:               false,

@@ -3,22 +3,9 @@ package process
 import (
 	"fmt"
 	"gAudit/pkg/kv"
-	"strings"
 
 	"github.com/jinzhu/copier"
 )
-
-// getRowFormatMaxSize
-func getRowFormatMaxSize(rowFormat string) int {
-	rowFormatMap := map[string]int{
-		"REDUNDANT":  8000,
-		"DYNAMIC":    65535,
-		"COMPRESSED": 15360,
-		"COMPACT":    8126,
-	}
-
-	return rowFormatMap[strings.ToUpper(rowFormat)]
-}
 
 // RowSizeTooLarge
 type PartSpecification struct {
@@ -30,11 +17,10 @@ type PartSpecification struct {
 	Charset string   // 列字符集
 }
 type InnoDBRowSize struct {
-	Table     string // 表名
-	Engine    string // 表引擎
-	Charset   string // 表字符集
-	RowFormat string // 行格式
-	ColsMaps  []PartSpecification
+	Table    string // 表名
+	Engine   string // 表引擎
+	Charset  string // 表字符集
+	ColsMaps []PartSpecification
 }
 
 // https://dev.mysql.com/doc/refman/8.3/en/innodb-row-format.html
@@ -42,12 +28,9 @@ func (l *InnoDBRowSize) Check(kv *kv.KVCache) error {
 	if l.Engine != "InnoDB" {
 		return nil
 	}
-	// 判断行格式
-	var rowFormat string = l.RowFormat
-	if l.RowFormat == "DEFAULT" {
-		rowFormat = kv.Get("innodbDefaultRowFormat").(string)
-	}
-	maxRowSize := getRowFormatMaxSize(rowFormat)
+
+	// MySQL 表的内部具有65,535字节的最大行大小限制
+	maxRowSize := 65535
 
 	// version
 	versionIns := DbVersion{kv.Get("dbVersion").(string)}
@@ -72,7 +55,7 @@ func (l *InnoDBRowSize) Check(kv *kv.KVCache) error {
 	}
 	// 判断是否触发了行大小限制
 	if maxSumRowsLength > maxRowSize {
-		return fmt.Errorf("表`%s`触发了Row Size Limit，最大行大小为%d，当前为%d（表存储引擎为%s，行格式为%s）", l.Table, maxRowSize, maxSumRowsLength, l.Engine, rowFormat)
+		return fmt.Errorf("表`%s`触发了Row Size Limit，最大行大小为%d，当前为%d（表存储引擎为%s）", l.Table, maxRowSize, maxSumRowsLength, l.Engine)
 	}
 
 	return nil

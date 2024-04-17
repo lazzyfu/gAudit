@@ -81,6 +81,7 @@ type TraverseCreateTableOptions struct {
 func (c *TraverseCreateTableOptions) Enter(in ast.Node) (ast.Node, bool) {
 	if stmt, ok := in.(*ast.CreateTableStmt); ok {
 		c.Table = stmt.Table.Name.String()
+		c.RowFormat = "DEFAULT"
 		for _, node := range stmt.Options {
 			switch node.Tp {
 			case ast.TableOptionEngine:
@@ -92,7 +93,18 @@ func (c *TraverseCreateTableOptions) Enter(in ast.Node) (ast.Node, bool) {
 			case ast.TableOptionAutoIncrement:
 				c.AutoIncrement = node.UintValue
 			case ast.TableOptionRowFormat:
-				c.RowFormat = node.StrValue
+				switch node.UintValue {
+				case ast.RowFormatDefault:
+					c.RowFormat = "DEFAULT"
+				case ast.RowFormatDynamic:
+					c.RowFormat = "DYNAMIC"
+				case ast.RowFormatCompressed:
+					c.RowFormat = "COMPRESSED"
+				case ast.RowFormatRedundant:
+					c.RowFormat = "REDUNDANT"
+				case ast.RowFormatCompact:
+					c.RowFormat = "COMPACT"
+				}
 			case ast.TableOptionComment:
 				c.HasComment = true       // 表示有注释，代表不了注释为空
 				c.Comment = node.StrValue // 获取注释的值
@@ -591,7 +603,6 @@ type TraverseCreateTableInnoDBRowSize struct {
 func (c *TraverseCreateTableInnoDBRowSize) Enter(in ast.Node) (ast.Node, bool) {
 	if stmt, ok := in.(*ast.CreateTableStmt); ok {
 		c.Table = stmt.Table.Name.String()
-		c.RowFormat = "DEFAULT"
 
 		for _, node := range stmt.Options {
 			switch node.Tp {
@@ -599,21 +610,6 @@ func (c *TraverseCreateTableInnoDBRowSize) Enter(in ast.Node) (ast.Node, bool) {
 				c.Charset = node.StrValue
 			case ast.TableOptionEngine:
 				c.Engine = node.StrValue
-			case ast.TableOptionRowFormat:
-				switch node.UintValue {
-				case ast.RowFormatDefault:
-					c.RowFormat = "DEFAULT"
-				case ast.RowFormatDynamic:
-					c.RowFormat = "DYNAMIC"
-				case ast.RowFormatCompressed:
-					c.RowFormat = "COMPRESSED"
-				case ast.RowFormatRedundant:
-					c.RowFormat = "REDUNDANT"
-				case ast.RowFormatCompact:
-					c.RowFormat = "COMPACT"
-				default:
-					c.RowFormat = "UNSUPPORTED"
-				}
 			}
 		}
 		for _, col := range stmt.Cols {
@@ -632,47 +628,6 @@ func (c *TraverseCreateTableInnoDBRowSize) Enter(in ast.Node) (ast.Node, bool) {
 }
 
 func (c *TraverseCreateTableInnoDBRowSize) Leave(in ast.Node) (ast.Node, bool) {
-	return in, true
-}
-
-// TraverseCreateTableInnoDBRowFormat
-type TraverseCreateTableInnoDBRowFormat struct {
-	Table     string // 表名
-	Engine    string // 表引擎
-	RowFormat string // 行格式
-}
-
-func (c *TraverseCreateTableInnoDBRowFormat) Enter(in ast.Node) (ast.Node, bool) {
-	if stmt, ok := in.(*ast.CreateTableStmt); ok {
-		c.Table = stmt.Table.Name.String()
-		c.RowFormat = "DEFAULT"
-
-		for _, node := range stmt.Options {
-			switch node.Tp {
-			case ast.TableOptionEngine:
-				c.Engine = node.StrValue
-			case ast.TableOptionRowFormat:
-				switch node.UintValue {
-				case ast.RowFormatDefault:
-					c.RowFormat = "DEFAULT"
-				case ast.RowFormatDynamic:
-					c.RowFormat = "DYNAMIC"
-				case ast.RowFormatCompressed:
-					c.RowFormat = "COMPRESSED"
-				case ast.RowFormatRedundant:
-					c.RowFormat = "REDUNDANT"
-				case ast.RowFormatCompact:
-					c.RowFormat = "COMPACT"
-				default:
-					c.RowFormat = "UNSUPPORTED"
-				}
-			}
-		}
-	}
-	return in, false
-}
-
-func (c *TraverseCreateTableInnoDBRowFormat) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
 
