@@ -610,6 +610,19 @@ func (c *TraverseCreateTableInnoDBRowSize) Enter(in ast.Node) (ast.Node, bool) {
 				c.Charset = node.StrValue
 			case ast.TableOptionEngine:
 				c.Engine = node.StrValue
+			case ast.TableOptionRowFormat:
+				switch node.UintValue {
+				case ast.RowFormatDefault:
+					c.RowFormat = "DEFAULT"
+				case ast.RowFormatDynamic:
+					c.RowFormat = "DYNAMIC"
+				case ast.RowFormatCompressed:
+					c.RowFormat = "COMPRESSED"
+				case ast.RowFormatRedundant:
+					c.RowFormat = "REDUNDANT"
+				case ast.RowFormatCompact:
+					c.RowFormat = "COMPACT"
+				}
 			}
 		}
 		for _, col := range stmt.Cols {
