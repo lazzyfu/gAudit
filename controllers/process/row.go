@@ -90,7 +90,7 @@ func (rs *InnoDBRowSize) Check(kv *kv.KVCache) error {
 
 	// 计算列长度
 	var totalRowLength int
-	var totalSpecifiedRowsLength int
+	var totalSpecifiedRowLength int
 
 	// 判断字符集，当列字符集为空，使用表的字符集
 	for _, colSpec := range rs.ColsMaps {
@@ -110,13 +110,13 @@ func (rs *InnoDBRowSize) Check(kv *kv.KVCache) error {
 
 		// 判断行格式
 		if (rowFormat == "REDUNDANT" || rowFormat == "COMPACT") && (colSpec.Tp == mysql.TypeString || colSpec.Tp == mysql.TypeVarchar) {
-			totalSpecifiedRowsLength += min(colLen, 768)
+			totalSpecifiedRowLength += min(colLen, 768)
 		}
 		totalRowLength += colLen
 	}
 
-	if (strings.ToUpper(rowFormat) == "REDUNDANT" || strings.ToUpper(rowFormat) == "COMPACT") && totalSpecifiedRowsLength > specifyRowFormatSize {
-		return fmt.Errorf("表`%s`触发了Row Size Limit（>%d），当前为%d（表存储引擎为%s，表行格式为%s）[请参考：https://dev.mysql.com/doc/refman/8.0/en/innodb-row-format.html]", rs.Table, specifyRowFormatSize, totalSpecifiedRowsLength, rs.Engine, rowFormat)
+	if (strings.ToUpper(rowFormat) == "REDUNDANT" || strings.ToUpper(rowFormat) == "COMPACT") && totalSpecifiedRowLength > specifyRowFormatSize {
+		return fmt.Errorf("表`%s`触发了Row Size Limit（>%d），当前为%d（表存储引擎为%s，表行格式为%s）[请参考：https://dev.mysql.com/doc/refman/8.0/en/innodb-row-format.html]", rs.Table, specifyRowFormatSize, totalSpecifiedRowLength, rs.Engine, rowFormat)
 	}
 
 	if totalRowLength > maxRowSize {
