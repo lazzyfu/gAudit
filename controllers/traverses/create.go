@@ -1,6 +1,6 @@
 /*
 @Time    :   2022/06/24 13:12:20
-@Author  :   zongfei.fu
+@Author  :   xff
 @Desc    :   遍历语法树,语法参考pingcap文档：https://github.com/pingcap/parser/blob/master/docs/quickstart.md
 */
 
@@ -625,6 +625,7 @@ func (c *TraverseCreateTableInnoDBRowSize) Enter(in ast.Node) (ast.Node, bool) {
 				}
 			}
 		}
+
 		for _, col := range stmt.Cols {
 			c.ColsMaps = append(c.ColsMaps,
 				process.PartSpecification{

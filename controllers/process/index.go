@@ -1,6 +1,6 @@
 /*
 @Time    :   2022/07/06 10:12:48
-@Author  :   zongfei.fu
+@Author  :   xff
 @Desc    :   None
 */
 
@@ -350,7 +350,6 @@ type LargePrefix struct {
 }
 
 func (l *LargePrefix) Check(kv *kv.KVCache) error {
-
 	const defaultLargePrefixLimit = 767
 	const LargePrefixLimit = 3072
 

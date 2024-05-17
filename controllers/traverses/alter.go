@@ -1,6 +1,6 @@
 /*
 @Time    :   2022/06/28 10:25:18
-@Author  :   zongfei.fu
+@Author  :   xff
 @Desc    :   遍历语法树,语法参考pingcap文档：https://github.com/pingcap/parser/blob/master/docs/quickstart.md
 */
 package traverses

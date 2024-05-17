@@ -1,6 +1,6 @@
 /*
 @Time    :   2022/07/06 10:12:48
-@Author  :   zongfei.fu
+@Author  :   xff
 @Desc    :   None
 */
 
@@ -175,7 +175,6 @@ func (c *ColOptions) CheckColumnDefaultValue() error {
 				return fmt.Errorf("列`%s`的默认值超过了字段类型定义的长度[表`%s`]", c.Column, c.Table)
 			}
 		}
-
 	}
 	// 有默认值，配置了无效的默认值，如default current_timestamp
 	if c.HasDefaultValue && !(c.Tp == mysql.TypeTimestamp || c.Tp == mysql.TypeDatetime) && c.DefaultValue == "current_timestamp" {
