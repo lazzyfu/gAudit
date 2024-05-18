@@ -69,6 +69,20 @@ func DescTable(table string, db *DB) (error, string) {
 	return nil, fmt.Sprintf("表或视图`%s`已经存在", table)
 }
 
+// 判断表行数是否大于指定的值
+func CheckTableRowCountLimit(table string, max_rows int, db *DB) error {
+	result, err := db.Query(fmt.Sprintf("SELECT 1 FROM `%s` limit %d,1", table, max_rows+1))
+	if err != nil {
+		return err
+	}
+	// 没有返回第max_rows+1行
+	if len(*result) == 0 {
+		return nil
+	}
+	// 返回了第max_rows+1行
+	return errors.New("")
+}
+
 // verifyTable
 func VerifyTable(table string, db *DB) (error, string) {
 	// 通过information_schema.tables检查表是否存在，适用于确认当前实例跨库的表
@@ -91,16 +105,17 @@ func VerifyTable(table string, db *DB) (error, string) {
 
 // 获取DB变量
 func GetDBVars(db *DB) (map[string]string, error) {
-	result, err := db.Query(`show variables where Variable_name in ('innodb_large_prefix','version','character_set_database','innodb_default_row_format')`)
+	result, err := db.Query(`show variables where Variable_name in ('innodb_large_prefix','version','character_set_database','innodb_default_row_format', 'innodb_adaptive_hash_index')`)
 	if err != nil {
 		return nil, err
 	}
 
 	var data map[string]string = map[string]string{
-		"dbVersion":              "",
-		"dbCharset":              "utf8",
-		"largePrefix":            "OFF",
-		"innodbDefaultRowFormat": "dynamic",
+		"dbVersion":                  "",
+		"dbCharset":                  "utf8",
+		"largePrefix":                "OFF",
+		"innodbDefaultRowFormat":     "dynamic",
+		"innodb_adaptive_hash_index": "ON",
 	}
 
 	// [map[Value:utf8 Variable_name:character_set_database] map[Value:5.7.35-log Variable_name:version]]
@@ -131,6 +146,8 @@ func GetDBVars(db *DB) (map[string]string, error) {
 			}
 		case "innodb_default_row_format":
 			data["innodbDefaultRowFormat"] = value
+		case "innodb_adaptive_hash_index":
+			data["innodbAdaptiveHashIndex"] = value
 		}
 	}
 	return data, nil

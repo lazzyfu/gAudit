@@ -67,8 +67,6 @@
     "ENABLE_DROP_COLS": true,
     "ENABLE_DROP_INDEXES": true,
     "ENABLE_DROP_PRIMARYKEY": false,
-    "ENABLE_DROP_TABLE": true,
-    "ENABLE_TRUNCATE_TABLE": true,
     "ENABLE_RENAME_TABLE_NAME": false,
     "ENABLE_MYSQL_MERGE_ALTER_TABLE": true,
     "ENABLE_TIDB_MERGE_ALTER_TABLE": false,
@@ -107,5 +105,8 @@
             ],
             "Reason": "研发禁止审核和提交"
         }
-    ]
+    ],
+    "ENABLE_DROP_TABLE": true,
+    "ENABLE_TRUNCATE_TABLE": true,
+    "DT_TABLE_MAXROW_LIMIT": 100
 }

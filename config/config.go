@@ -83,8 +83,6 @@ type AuditConfiguration struct {
 	ENABLE_DROP_COLS               bool // 是否允许DROP列
 	ENABLE_DROP_INDEXES            bool // 是否允许DROP索引
 	ENABLE_DROP_PRIMARYKEY         bool // 是否允许DROP主键
-	ENABLE_DROP_TABLE              bool // 是否允许DROP TABLE
-	ENABLE_TRUNCATE_TABLE          bool // 是否允许TRUNCATE TABLE
 	ENABLE_RENAME_TABLE_NAME       bool // 是否允许rename表名
 	ENABLE_MYSQL_MERGE_ALTER_TABLE bool // MySQL同一个表的多个ALTER是否合并为单条语句
 	ENABLE_TIDB_MERGE_ALTER_TABLE  bool // TiDB同一个表的多个ALTER是否合并为单条语句
@@ -103,6 +101,10 @@ type AuditConfiguration struct {
 	// 禁止语法审核的表
 	DISABLE_AUDIT_DML_TABLES []DisableTablesAudit // 禁止指定的表的DML语句进行审核
 	DISABLE_AUDIT_DDL_TABLES []DisableTablesAudit // 禁止指定的表的DDL语句进行审核
+	// DROP/TRUNCATE
+	ENABLE_DROP_TABLE     bool // 是否允许DROP TABLE
+	ENABLE_TRUNCATE_TABLE bool // 是否允许TRUNCATE TABLE
+	DT_TABLE_MAXROW_LIMIT int  // 在表行数超过一定数量时不允许进行DROP/TRUNCATE操作
 }
 
 func NewAuditConfiguration() *AuditConfiguration {
@@ -162,8 +164,6 @@ func NewAuditConfiguration() *AuditConfiguration {
 		ENABLE_DROP_COLS:                     true,
 		ENABLE_DROP_INDEXES:                  true,
 		ENABLE_DROP_PRIMARYKEY:               false,
-		ENABLE_DROP_TABLE:                    true,
-		ENABLE_TRUNCATE_TABLE:                true,
 		ENABLE_RENAME_TABLE_NAME:             false,
 		ENABLE_MYSQL_MERGE_ALTER_TABLE:       true,
 		ENABLE_TIDB_MERGE_ALTER_TABLE:        false,
@@ -180,5 +180,8 @@ func NewAuditConfiguration() *AuditConfiguration {
 		DISABLE_ON_DUPLICATE:                 true,
 		DISABLE_AUDIT_DML_TABLES:             []DisableTablesAudit{},
 		DISABLE_AUDIT_DDL_TABLES:             []DisableTablesAudit{},
+		ENABLE_DROP_TABLE:                    true,
+		ENABLE_TRUNCATE_TABLE:                true,
+		DT_TABLE_MAXROW_LIMIT:                100,
 	}
 }

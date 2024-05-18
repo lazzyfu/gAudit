@@ -364,9 +364,8 @@ func (c *Checker) Check() (err error, returnData []ReturnData) {
 	// 获取目标数据库变量
 	dbVars, err := dao.GetDBVars(c.DB)
 	if err != nil {
-		errMsg := fmt.Sprintf("获取DB变量失败：%s", err.Error())
-		global.App.Log.WithFields(logrus.Fields{"request_id": c.Form.RequestID, "type": "App"}).Error(errMsg)
-		return fmt.Errorf(errMsg), returnData
+		global.App.Log.WithFields(logrus.Fields{"request_id": c.Form.RequestID, "type": "App"}).Error(err)
+		return fmt.Errorf(err.Error()), returnData
 	}
 	for k, v := range dbVars {
 		kv.Put(k, v)

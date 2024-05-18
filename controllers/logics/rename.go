@@ -24,12 +24,10 @@ func LogicRenameTable(v *traverses.TraverseRenameTable, r *controllers.RuleHint)
 		return
 	}
 	// 禁止审核指定的表
-	if len(r.AuditConfig.DISABLE_AUDIT_DDL_TABLES) > 0 {
-		for _, item := range r.AuditConfig.DISABLE_AUDIT_DDL_TABLES {
-			for _, t := range v.Tables {
-				if item.DB == r.DB.Database && utils.IsContain(item.Tables, t.OldTable) {
-					r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DDL语法审核，原因: %s", r.DB.Database, t.OldTable, item.Reason))
-				}
+	for _, item := range r.AuditConfig.DISABLE_AUDIT_DDL_TABLES {
+		for _, t := range v.Tables {
+			if item.DB == r.DB.Database && utils.IsContain(item.Tables, t.OldTable) {
+				r.Summary = append(r.Summary, fmt.Sprintf("表`%s`.`%s`被限制进行DDL语法审核，原因: %s", r.DB.Database, t.OldTable, item.Reason))
 			}
 		}
 	}
