@@ -1,7 +1,6 @@
 /*
 @Time    :   2022/07/06 10:08:10
 @Author  :   xff
-@Desc    :   None
 */
 
 package main
@@ -13,6 +12,7 @@ import (
 	"gAudit/global"
 	"gAudit/middleware"
 	"gAudit/routers"
+	"time"
 
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
@@ -31,10 +31,14 @@ func main() {
 	// 初始化日志
 	bootstrap.InitializeLog()
 
+	// gin框架
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(requestid.New())
-	r.Use(middleware.LoggerRequestToFile())
+
+	// 初始化请求日志记录器
+	requestLogger := middleware.InitLogger(time.Now().Format("2006-01-02") + "-request.log")
+	r.Use(middleware.LoggerRequestToFile(requestLogger))
 
 	// 路由
 	routers.SetupRouter(r)

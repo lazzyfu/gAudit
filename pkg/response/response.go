@@ -26,9 +26,9 @@ type Response struct {
 func writeResponse(c *gin.Context, code string, data interface{}, msg string) {
 	requestID := requestid.Get(c)
 	if code == "0000" {
-		global.App.Log.WithFields(logrus.Fields{"request_id": requestID, "type": "response"}).Info(msg)
+		global.App.Log.WithFields(logrus.Fields{"request_id": requestID}).Info(msg)
 	} else {
-		global.App.Log.WithFields(logrus.Fields{"request_id": requestID, "type": "response"}).Error(msg)
+		global.App.Log.WithFields(logrus.Fields{"request_id": requestID}).Error(msg)
 	}
 
 	c.JSON(http.StatusOK, Response{requestID, code, data, msg})

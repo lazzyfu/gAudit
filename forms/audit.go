@@ -6,6 +6,7 @@
 
 package forms
 
+// 表单
 type SyntaxAuditForm struct {
 	DbUser            string                 `json:"db_user"`
 	DbPassword        string                 `json:"db_password"`
@@ -15,10 +16,9 @@ type SyntaxAuditForm struct {
 	Timeout           int64                  `json:"timeout"`                 // 连接数据库超时，单位ms
 	CustomAuditParams map[string]interface{} `json:"custom_audit_parameters"` // 自定义的参数
 	SqlText           string                 `json:"sqltext"`                 // 审计的SQL文本
-	RequestID         string                 `json:"request_id"`              // 每次请求的ID
 }
 
+// 表单
 type ExtractTablesForm struct {
-	SqlText   string `json:"sqltext"`    // SQL文本
-	RequestID string `json:"request_id"` // 每次请求的ID
+	SqlText string `json:"sqltext"` // SQL文本
 }

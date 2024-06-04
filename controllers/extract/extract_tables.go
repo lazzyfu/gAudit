@@ -60,15 +60,20 @@ type ReturnData struct {
 
 // 检查结构体
 type Checker struct {
-	Form  forms.ExtractTablesForm
-	Audit *config.Audit
+	Form      *forms.ExtractTablesForm
+	RequestID string
+	Audit     *config.Audit
 }
 
-func (c *Checker) Extract(RequestID string) (error, []ReturnData) {
+func (c *Checker) Extract() (error, []ReturnData) {
 	var returnData []ReturnData
+
+	// 记录下提取表名的SQL语句
+	global.App.Log.WithFields(logrus.Fields{"request_id": c.RequestID}).Info(c.Form.SqlText)
+
 	err := c.Parse()
 	if err != nil {
-		global.App.Log.WithFields(logrus.Fields{"request_id": RequestID, "type": "App"}).Error(err)
+		global.App.Log.WithFields(logrus.Fields{"request_id": c.RequestID}).Error(err)
 		return err, returnData
 	}
 	for _, stmt := range c.Audit.TiStmt {

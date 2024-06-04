@@ -20,11 +20,12 @@ import (
 	"gorm.io/plugin/dbresolver"
 )
 
+// InitializeLog 初始化日志
 func InitializeLog() {
-	now := time.Now()
-	global.App.Log = middleware.InitLog(now.Format("2006-01-02") + ".log")
+	global.App.Log = middleware.InitLogger("app.log")
 }
 
+// InitializeDB 初始化数据库
 func InitTables() {
 	err := global.App.DB.AutoMigrate(&models.TestCase{})
 	if err != nil {
@@ -32,6 +33,7 @@ func InitTables() {
 	}
 }
 
+// InitializeAuditConfig 初始化AuditConfig
 func InitializeAuditConfig(configFile string) *config.AuditConfiguration {
 	var AuditConfig = config.NewAuditConfiguration()
 
@@ -52,6 +54,7 @@ func InitializeAuditConfig(configFile string) *config.AuditConfiguration {
 	return AuditConfig
 }
 
+// InitializeDB 初始化数据库
 func InitDB(user string, password string, host string, port int, database string) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port, database)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})

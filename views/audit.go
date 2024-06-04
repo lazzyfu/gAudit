@@ -16,14 +16,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 语法检查
 func SyntaxInspect(c *gin.Context) {
-	var form forms.SyntaxAuditForm
-	form.RequestID = requestid.Get(c)
+	var form *forms.SyntaxAuditForm
 
 	if err := c.ShouldBind(&form); err != nil {
 		response.ValidateFail(c, err.Error())
 	} else {
-		ch := checker.Checker{Form: form}
+		ch := checker.Checker{Form: form, RequestID: requestid.Get(c)}
 		err, returnData := ch.Check()
 		if err != nil {
 			response.Fail(c, err.Error())
@@ -35,15 +35,13 @@ func SyntaxInspect(c *gin.Context) {
 
 // 提取表名
 func ExtractTables(c *gin.Context) {
-	var form forms.ExtractTablesForm
-	var RequestID string = requestid.Get(c)
-	form.RequestID = RequestID
+	var form *forms.ExtractTablesForm
 
 	if err := c.ShouldBind(&form); err != nil {
 		response.ValidateFail(c, err.Error())
 	} else {
-		checker := extract.Checker{Form: form}
-		err, returnData := checker.Extract(RequestID)
+		checker := extract.Checker{Form: form, RequestID: requestid.Get(c)}
+		err, returnData := checker.Extract()
 		if err != nil {
 			response.Fail(c, err.Error())
 		} else {

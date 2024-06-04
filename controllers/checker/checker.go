@@ -43,7 +43,8 @@ type ReturnData struct {
 	Query        string   `json:"query"` // 原始SQL
 }
 type Checker struct {
-	Form        forms.SyntaxAuditForm
+	Form        *forms.SyntaxAuditForm
+	RequestID   string
 	Charset     string
 	Collation   string
 	Audit       *config.Audit
@@ -356,15 +357,16 @@ func (c *Checker) Check() (err error, returnData []ReturnData) {
 	c.InitDB()
 	var mergeAlters []string // 存放alter语句中的表名
 
-	// 记录下审计sql
-	global.App.Log.WithFields(logrus.Fields{"request_id": c.Form.RequestID, "type": "App"}).Info(c.Form.SqlText)
+	// 记录下审计的SQL语句
+	global.App.Log.WithFields(logrus.Fields{"request_id": c.RequestID}).Info(c.Form.SqlText)
 
 	// 每次请求基于RequestID初始化kv cache
-	kv := kv.NewKVCache(c.Form.RequestID)
+	kv := kv.NewKVCache(c.RequestID)
+
 	// 获取目标数据库变量
 	dbVars, err := dao.GetDBVars(c.DB)
 	if err != nil {
-		global.App.Log.WithFields(logrus.Fields{"request_id": c.Form.RequestID, "type": "App"}).Error(err)
+		global.App.Log.WithFields(logrus.Fields{"request_id": c.RequestID}).Error(err)
 		return fmt.Errorf(err.Error()), returnData
 	}
 	for k, v := range dbVars {
@@ -375,7 +377,7 @@ func (c *Checker) Check() (err error, returnData []ReturnData) {
 	// 解析SQL
 	err = c.Parse()
 	if err != nil {
-		global.App.Log.WithFields(logrus.Fields{"request_id": c.Form.RequestID, "type": "App"}).Error(err)
+		global.App.Log.WithFields(logrus.Fields{"request_id": c.RequestID}).Error(err)
 		return err, returnData
 	}
 
