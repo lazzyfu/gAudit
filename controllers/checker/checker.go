@@ -11,17 +11,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"gAudit/config"
-	"gAudit/controllers"
 	"gAudit/controllers/dao"
 	"gAudit/controllers/parser"
 	"gAudit/controllers/process"
-	"gAudit/controllers/rules"
 	"gAudit/forms"
 	"gAudit/global"
 	"gAudit/pkg/kv"
 	"gAudit/pkg/utils"
 	"reflect"
-	"regexp"
 	"strings"
 	"time"
 
@@ -142,200 +139,6 @@ func (c *Checker) Parse() error {
 	return nil
 }
 
-func (c *Checker) CreateViewStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
-	// 建视图语句
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DDL", Level: "INFO"}
-	for _, rule := range rules.CreateViewRules() {
-		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
-			DB:          c.DB,
-			KV:          kv,
-			AuditConfig: &c.AuditConfig,
-		}
-		rule.RuleHint = ruleHint
-		rule.CheckFunc(&rule, &stmt)
-		if len(rule.Summary) > 0 {
-			// 检查不通过
-			data.Level = "WARN"
-			data.Summary = append(data.Summary, rule.Summary...)
-		}
-		if rule.IsSkipNextStep {
-			// 如果IsSkipNextStep为true，跳过接下来的检查步骤
-			break
-		}
-	}
-	return data
-}
-
-func (c *Checker) CreateTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
-	// 建表语句
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DDL", Level: "INFO"}
-	for _, rule := range rules.CreateTableRules() {
-		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
-			DB:          c.DB,
-			KV:          kv,
-			AuditConfig: &c.AuditConfig,
-		}
-		rule.RuleHint = ruleHint
-
-		rule.CheckFunc(&rule, &stmt)
-		if len(rule.Summary) > 0 {
-			// 检查不通过
-			data.Level = "WARN"
-			data.Summary = append(data.Summary, rule.Summary...)
-		}
-		if rule.IsSkipNextStep {
-			// 如果IsSkipNextStep为true，跳过接下来的检查步骤
-			break
-		}
-	}
-	return data
-}
-
-func (c *Checker) AlterTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) (ReturnData, string) {
-	// alter语句
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DDL", Level: "INFO"}
-	var mergeAlter string
-	// 禁止使用ALTER TABLE...ADD CONSTRAINT...语法
-	tmpCompile := regexp.MustCompile(`(?is:.*alter.*table.*add.*constraint.*)`)
-	match := tmpCompile.MatchString(stmt.Text())
-	if match {
-		data.Level = "WARN"
-		data.Summary = append(data.Summary, "禁止使用ALTER TABLE...ADD CONSTRAINT...语法")
-		return data, mergeAlter
-	}
-	for _, rule := range rules.AlterTableRules() {
-		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
-			DB:          c.DB,
-			KV:          kv,
-			AuditConfig: &c.AuditConfig,
-		}
-		rule.RuleHint = ruleHint
-		rule.CheckFunc(&rule, &stmt)
-		if len(rule.MergeAlter) > 0 && len(mergeAlter) == 0 {
-			mergeAlter = rule.MergeAlter
-		}
-		if len(rule.Summary) > 0 {
-			// 检查不通过
-			data.Level = "WARN"
-			data.Summary = append(data.Summary, rule.Summary...)
-		}
-		if rule.IsSkipNextStep {
-			// 如果IsSkipNextStep为true，跳过接下来的检查步骤
-			break
-		}
-	}
-	return data, mergeAlter
-}
-
-func (c *Checker) RenameTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
-	// rename table语句
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DDL", Level: "INFO"}
-	for _, rule := range rules.RenameTableRules() {
-		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
-			DB:          c.DB,
-			KV:          kv,
-			AuditConfig: &c.AuditConfig,
-		}
-		rule.RuleHint = ruleHint
-		rule.CheckFunc(&rule, &stmt)
-		if len(rule.Summary) > 0 {
-			// 检查不通过
-			data.Level = "WARN"
-			data.Summary = append(data.Summary, rule.Summary...)
-		}
-		if rule.IsSkipNextStep {
-			// 如果IsSkipNextStep为true，跳过接下来的检查步骤
-			break
-		}
-	}
-	return data
-}
-
-func (c *Checker) AnalyzeTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
-	// analyze table语句
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DDL", Level: "INFO"}
-	for _, rule := range rules.AnalyzeTableRules() {
-		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
-			DB:          c.DB,
-			KV:          kv,
-			AuditConfig: &c.AuditConfig,
-		}
-		rule.RuleHint = ruleHint
-		rule.CheckFunc(&rule, &stmt)
-		if len(rule.Summary) > 0 {
-			// 检查不通过
-			data.Level = "WARN"
-			data.Summary = append(data.Summary, rule.Summary...)
-		}
-		if rule.IsSkipNextStep {
-			// 如果IsSkipNextStep为true，跳过接下来的检查步骤
-			break
-		}
-	}
-	return data
-}
-
-func (c *Checker) DropTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
-	// drop/truncate语句
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DDL", Level: "INFO"}
-	for _, rule := range rules.DropTableRules() {
-		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
-			DB:          c.DB,
-			KV:          kv,
-			AuditConfig: &c.AuditConfig,
-		}
-		rule.RuleHint = ruleHint
-		rule.CheckFunc(&rule, &stmt)
-		if len(rule.Summary) > 0 {
-			// 检查不通过
-			data.Level = "WARN"
-			data.Summary = append(data.Summary, rule.Summary...)
-		}
-		if rule.IsSkipNextStep {
-			// 如果IsSkipNextStep为true，跳过接下来的检查步骤
-			break
-		}
-	}
-	return data
-}
-
-func (c *Checker) DMLStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
-	// delete/update/insert语句
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DML", Level: "INFO"}
-	/*
-		DML语句真的需要对同一个指纹的SQL跳过校验？
-		1. DML规则并不多，对实际校验性能影响不大
-		2. 每条DML都需要进行Explain，由于考虑传值不一样，因此指纹一样并不能代表Explain的影响行数一样
-		3. 实际测试1000条update校验仅需800ms,2000条update校验仅需1500ms
-		finger := kv.Get(fingerId)
-		var IsSkipAudit bool
-		if finger != nil {
-			IsSkipAudit = true
-		}
-	*/
-	for _, rule := range rules.DMLRules() {
-		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
-			DB:          c.DB,
-			KV:          kv,
-			AuditConfig: &c.AuditConfig,
-		}
-		rule.RuleHint = ruleHint
-		rule.Query = stmt.Text()
-		rule.CheckFunc(&rule, &stmt)
-		data.AffectedRows = rule.AffectedRows
-		if len(rule.Summary) > 0 {
-			// 检查不通过
-			data.Level = "WARN"
-			data.Summary = append(data.Summary, rule.Summary...)
-		}
-		if rule.IsSkipNextStep {
-			// 如果IsSkipNextStep为true，跳过接下来的检查步骤
-			break
-		}
-	}
-	return data
-}
-
 func (c *Checker) MergeAlter(kv *kv.KVCache, mergeAlters []string) ReturnData {
 	// 检查mysql merge操作
 	var data ReturnData = ReturnData{Level: "INFO"}
@@ -362,6 +165,7 @@ func (c *Checker) Check() (err error, returnData []ReturnData) {
 
 	// 每次请求基于RequestID初始化kv cache
 	kv := kv.NewKVCache(c.RequestID)
+	defer kv.Delete(c.RequestID)
 
 	// 获取目标数据库变量
 	dbVars, err := dao.GetDBVars(c.DB)
@@ -388,6 +192,8 @@ func (c *Checker) Check() (err error, returnData []ReturnData) {
 		fingerId := query.Id(query.Fingerprint(sqlTrim))
 		kv.Put(fingerId, true)
 		// 迭代
+		st := Stmt{c.DB, c.AuditConfig}
+
 		switch stmt.(type) {
 		case *ast.SelectStmt:
 			// select语句不允许审核
@@ -395,21 +201,21 @@ func (c *Checker) Check() (err error, returnData []ReturnData) {
 			data.Summary = append(data.Summary, "发现SELECT语句，请删除SELECT语句后重新审核")
 			returnData = append(returnData, data)
 		case *ast.CreateTableStmt:
-			returnData = append(returnData, c.CreateTableStmt(stmt, kv, fingerId))
+			returnData = append(returnData, st.CreateTableStmt(stmt, kv, fingerId))
 		case *ast.CreateViewStmt:
-			returnData = append(returnData, c.CreateViewStmt(stmt, kv, fingerId))
+			returnData = append(returnData, st.CreateViewStmt(stmt, kv, fingerId))
 		case *ast.AlterTableStmt:
-			data, mergeAlter := c.AlterTableStmt(stmt, kv, fingerId)
+			data, mergeAlter := st.AlterTableStmt(stmt, kv, fingerId)
 			mergeAlters = append(mergeAlters, mergeAlter)
 			returnData = append(returnData, data)
 		case *ast.DropTableStmt, *ast.TruncateTableStmt:
-			returnData = append(returnData, c.DropTableStmt(stmt, kv, fingerId))
+			returnData = append(returnData, st.DropTableStmt(stmt, kv, fingerId))
 		case *ast.DeleteStmt, *ast.InsertStmt, *ast.UpdateStmt:
-			returnData = append(returnData, c.DMLStmt(stmt, kv, fingerId))
+			returnData = append(returnData, st.DMLStmt(stmt, kv, fingerId))
 		case *ast.RenameTableStmt:
-			returnData = append(returnData, c.RenameTableStmt(stmt, kv, fingerId))
+			returnData = append(returnData, st.RenameTableStmt(stmt, kv, fingerId))
 		case *ast.AnalyzeTableStmt:
-			returnData = append(returnData, c.AnalyzeTableStmt(stmt, kv, fingerId))
+			returnData = append(returnData, st.AnalyzeTableStmt(stmt, kv, fingerId))
 		default:
 			// 不允许的其他语句，有需求可以扩展
 			var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "", Level: "WARN"}
@@ -417,6 +223,7 @@ func (c *Checker) Check() (err error, returnData []ReturnData) {
 			returnData = append(returnData, data)
 		}
 	}
+	// 判断多条alter语句是否需要合并
 	if len(mergeAlters) > 1 {
 		mergeData := c.MergeAlter(kv, mergeAlters)
 		if len(mergeData.Summary) > 0 {
@@ -427,5 +234,6 @@ func (c *Checker) Check() (err error, returnData []ReturnData) {
 	if len(c.Audit.TiStmt) == 0 {
 		return nil, []ReturnData{}
 	}
-	return nil, returnData
+
+	return
 }
