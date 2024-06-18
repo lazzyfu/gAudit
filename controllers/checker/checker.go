@@ -30,15 +30,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// 返回数据
-type ReturnData struct {
-	Summary      []string `json:"summary"` // 规则摘要
-	Level        string   `json:"level"`   // 提醒级别,INFO/WARN/ERROR
-	AffectedRows int      `json:"affected_rows"`
-	Type         string   `json:"type"`
-	FingerId     string   `json:"finger_id"`
-	Query        string   `json:"query"` // 原始SQL
-}
+// 检查器
 type Checker struct {
 	Form        *forms.SyntaxAuditForm
 	RequestID   string
@@ -62,7 +54,7 @@ func (c *Checker) InitDB() {
 }
 
 // 动态传参，当前请求传参可覆盖默认配置，仅对当前请求生效
-func (c *Checker) CustomParams() error {
+func (c *Checker) initAuditParams() error {
 	// 赋值给新变量，使用copier进行深copy，会一层一层进行copy
 	err := copier.CopyWithOption(&c.AuditConfig, global.App.AuditConfig, copier.Option{IgnoreEmpty: true, DeepCopy: true})
 	if err != nil {
@@ -120,21 +112,17 @@ func (c *Checker) CustomParams() error {
 	return nil
 }
 
-func (c *Checker) Parse() error {
+func (c *Checker) parser() error {
 	// 解析SQL
 	var warns []error
 	var err error
-	// 处理审核参数
-	if err := c.CustomParams(); err != nil {
-		return err
-	}
 	// 解析
 	c.Audit, warns, err = parser.NewParse(c.Form.SqlText, c.Charset, c.Collation)
 	if len(warns) > 0 {
 		return fmt.Errorf("Parse Warning: %s", utils.ErrsJoin("; ", warns))
 	}
 	if err != nil {
-		return fmt.Errorf("sql解析错误：%s", err.Error())
+		return fmt.Errorf("SQL解析错误：%s", err.Error())
 	}
 	return nil
 }
@@ -178,11 +166,17 @@ func (c *Checker) Check() (err error, returnData []ReturnData) {
 	}
 	c.Charset = dbVars["dbCharset"]
 
+	// 处理审核参数
+	if err = c.initAuditParams(); err != nil {
+		global.App.Log.WithFields(logrus.Fields{"request_id": c.RequestID}).Error(err)
+		return
+	}
+
 	// 解析SQL
-	err = c.Parse()
+	err = c.parser()
 	if err != nil {
 		global.App.Log.WithFields(logrus.Fields{"request_id": c.RequestID}).Error(err)
-		return err, returnData
+		return
 	}
 
 	// 迭代stmt
@@ -191,6 +185,7 @@ func (c *Checker) Check() (err error, returnData []ReturnData) {
 		sqlTrim := strings.TrimSuffix(stmt.Text(), ";")
 		fingerId := query.Id(query.Fingerprint(sqlTrim))
 		kv.Put(fingerId, true)
+
 		// 迭代
 		st := Stmt{c.DB, c.AuditConfig}
 
