@@ -15,21 +15,24 @@ import (
 
 type Stmt struct {
 	DB          *dao.DB
+	Stmt        ast.StmtNode
+	KV          *kv.KVCache
+	FingerId    string
 	AuditConfig config.AuditConfiguration
 }
 
-func (s *Stmt) CreateTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "CreateTable", Level: "INFO"}
+func (s *Stmt) CreateTableStmt() ReturnData {
+	var data ReturnData = ReturnData{FingerId: s.FingerId, Query: s.Stmt.Text(), Type: "CreateTable", Level: "INFO"}
 
 	for _, rule := range rules.CreateTableRules() {
 		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
 			DB:          s.DB,
-			KV:          kv,
-			Query:       stmt.Text(),
+			KV:          s.KV,
+			Query:       s.Stmt.Text(),
 			AuditConfig: &s.AuditConfig,
 		}
 		rule.RuleHint = ruleHint
-		rule.CheckFunc(&rule, &stmt)
+		rule.CheckFunc(&rule, &s.Stmt)
 
 		if len(rule.RuleHint.Summary) > 0 {
 			data.Level = "WARN"
@@ -43,18 +46,18 @@ func (s *Stmt) CreateTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId strin
 	return data
 }
 
-func (s *Stmt) CreateViewStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "CreateView", Level: "INFO"}
+func (s *Stmt) CreateViewStmt() ReturnData {
+	var data ReturnData = ReturnData{FingerId: s.FingerId, Query: s.Stmt.Text(), Type: "CreateView", Level: "INFO"}
 
 	for _, rule := range rules.CreateViewRules() {
 		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
 			DB:          s.DB,
-			KV:          kv,
-			Query:       stmt.Text(),
+			KV:          s.KV,
+			Query:       s.Stmt.Text(),
 			AuditConfig: &s.AuditConfig,
 		}
 		rule.RuleHint = ruleHint
-		rule.CheckFunc(&rule, &stmt)
+		rule.CheckFunc(&rule, &s.Stmt)
 
 		if len(rule.RuleHint.Summary) > 0 {
 			data.Level = "WARN"
@@ -68,18 +71,18 @@ func (s *Stmt) CreateViewStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string
 	return data
 }
 
-func (s *Stmt) RenameTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "RenameTable", Level: "INFO"}
+func (s *Stmt) RenameTableStmt() ReturnData {
+	var data ReturnData = ReturnData{FingerId: s.FingerId, Query: s.Stmt.Text(), Type: "RenameTable", Level: "INFO"}
 
 	for _, rule := range rules.RenameTableRules() {
 		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
 			DB:          s.DB,
-			KV:          kv,
-			Query:       stmt.Text(),
+			KV:          s.KV,
+			Query:       s.Stmt.Text(),
 			AuditConfig: &s.AuditConfig,
 		}
 		rule.RuleHint = ruleHint
-		rule.CheckFunc(&rule, &stmt)
+		rule.CheckFunc(&rule, &s.Stmt)
 
 		if len(rule.RuleHint.Summary) > 0 {
 			data.Level = "WARN"
@@ -93,18 +96,18 @@ func (s *Stmt) RenameTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId strin
 	return data
 }
 
-func (s *Stmt) AnalyzeTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "AnalyzeTable", Level: "INFO"}
+func (s *Stmt) AnalyzeTableStmt() ReturnData {
+	var data ReturnData = ReturnData{FingerId: s.FingerId, Query: s.Stmt.Text(), Type: "AnalyzeTable", Level: "INFO"}
 
 	for _, rule := range rules.AnalyzeTableRules() {
 		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
 			DB:          s.DB,
-			KV:          kv,
-			Query:       stmt.Text(),
+			KV:          s.KV,
+			Query:       s.Stmt.Text(),
 			AuditConfig: &s.AuditConfig,
 		}
 		rule.RuleHint = ruleHint
-		rule.CheckFunc(&rule, &stmt)
+		rule.CheckFunc(&rule, &s.Stmt)
 
 		if len(rule.RuleHint.Summary) > 0 {
 			data.Level = "WARN"
@@ -118,18 +121,18 @@ func (s *Stmt) AnalyzeTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId stri
 	return data
 }
 
-func (s *Stmt) DropTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DropTable", Level: "INFO"}
+func (s *Stmt) DropTableStmt() ReturnData {
+	var data ReturnData = ReturnData{FingerId: s.FingerId, Query: s.Stmt.Text(), Type: "DropTable", Level: "INFO"}
 
 	for _, rule := range rules.DropTableRules() {
 		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
 			DB:          s.DB,
-			KV:          kv,
-			Query:       stmt.Text(),
+			KV:          s.KV,
+			Query:       s.Stmt.Text(),
 			AuditConfig: &s.AuditConfig,
 		}
 		rule.RuleHint = ruleHint
-		rule.CheckFunc(&rule, &stmt)
+		rule.CheckFunc(&rule, &s.Stmt)
 
 		if len(rule.RuleHint.Summary) > 0 {
 			data.Level = "WARN"
@@ -143,12 +146,12 @@ func (s *Stmt) DropTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string)
 	return data
 }
 
-func (s *Stmt) AlterTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) (ReturnData, string) {
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "AlterTable", Level: "INFO"}
+func (s *Stmt) AlterTableStmt() (ReturnData, string) {
+	var data ReturnData = ReturnData{FingerId: s.FingerId, Query: s.Stmt.Text(), Type: "AlterTable", Level: "INFO"}
 	var mergeAlter string
 	// 禁止使用ALTER TABLE...ADD CONSTRAINT...语法
 	tmpCompile := regexp.MustCompile(`(?is:.*alter.*table.*add.*constraint.*)`)
-	match := tmpCompile.MatchString(stmt.Text())
+	match := tmpCompile.MatchString(s.Stmt.Text())
 	if match {
 		data.Level = "WARN"
 		data.Summary = append(data.Summary, "禁止使用ALTER TABLE...ADD CONSTRAINT...语法")
@@ -158,11 +161,11 @@ func (s *Stmt) AlterTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string
 	for _, rule := range rules.AlterTableRules() {
 		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
 			DB:          s.DB,
-			KV:          kv,
+			KV:          s.KV,
 			AuditConfig: &s.AuditConfig,
 		}
 		rule.RuleHint = ruleHint
-		rule.CheckFunc(&rule, &stmt)
+		rule.CheckFunc(&rule, &s.Stmt)
 		if len(rule.RuleHint.MergeAlter) > 0 && len(mergeAlter) == 0 {
 			mergeAlter = rule.RuleHint.MergeAlter
 		}
@@ -180,7 +183,7 @@ func (s *Stmt) AlterTableStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string
 	return data, mergeAlter
 }
 
-func (s *Stmt) DMLStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) ReturnData {
+func (s *Stmt) DMLStmt() ReturnData {
 	// delete/update/insert语句
 	/*
 		DML语句真的需要对同一个指纹的SQL跳过校验？
@@ -193,17 +196,17 @@ func (s *Stmt) DMLStmt(stmt ast.StmtNode, kv *kv.KVCache, fingerId string) Retur
 			IsSkipAudit = true
 		}
 	*/
-	var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "DML", Level: "INFO"}
+	var data ReturnData = ReturnData{FingerId: s.FingerId, Query: s.Stmt.Text(), Type: "DML", Level: "INFO"}
 
 	for _, rule := range rules.DMLRules() {
 		var ruleHint *controllers.RuleHint = &controllers.RuleHint{
 			DB:          s.DB,
-			KV:          kv,
-			Query:       stmt.Text(),
+			KV:          s.KV,
+			Query:       s.Stmt.Text(),
 			AuditConfig: &s.AuditConfig,
 		}
 		rule.RuleHint = ruleHint
-		rule.CheckFunc(&rule, &stmt)
+		rule.CheckFunc(&rule, &s.Stmt)
 
 		// 当为DML语句时，赋值AffectedRows
 		data.AffectedRows = rule.RuleHint.AffectedRows

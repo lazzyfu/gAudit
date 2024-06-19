@@ -187,7 +187,7 @@ func (c *Checker) Check() (err error, returnData []ReturnData) {
 		kv.Put(fingerId, true)
 
 		// 迭代
-		st := Stmt{c.DB, c.AuditConfig}
+		st := Stmt{c.DB, stmt, kv, fingerId, c.AuditConfig}
 
 		switch stmt.(type) {
 		case *ast.SelectStmt:
@@ -196,21 +196,21 @@ func (c *Checker) Check() (err error, returnData []ReturnData) {
 			data.Summary = append(data.Summary, "发现SELECT语句，请删除SELECT语句后重新审核")
 			returnData = append(returnData, data)
 		case *ast.CreateTableStmt:
-			returnData = append(returnData, st.CreateTableStmt(stmt, kv, fingerId))
+			returnData = append(returnData, st.CreateTableStmt())
 		case *ast.CreateViewStmt:
-			returnData = append(returnData, st.CreateViewStmt(stmt, kv, fingerId))
+			returnData = append(returnData, st.CreateViewStmt())
 		case *ast.AlterTableStmt:
-			data, mergeAlter := st.AlterTableStmt(stmt, kv, fingerId)
+			data, mergeAlter := st.AlterTableStmt()
 			mergeAlters = append(mergeAlters, mergeAlter)
 			returnData = append(returnData, data)
 		case *ast.DropTableStmt, *ast.TruncateTableStmt:
-			returnData = append(returnData, st.DropTableStmt(stmt, kv, fingerId))
+			returnData = append(returnData, st.DropTableStmt())
 		case *ast.DeleteStmt, *ast.InsertStmt, *ast.UpdateStmt:
-			returnData = append(returnData, st.DMLStmt(stmt, kv, fingerId))
+			returnData = append(returnData, st.DMLStmt())
 		case *ast.RenameTableStmt:
-			returnData = append(returnData, st.RenameTableStmt(stmt, kv, fingerId))
+			returnData = append(returnData, st.RenameTableStmt())
 		case *ast.AnalyzeTableStmt:
-			returnData = append(returnData, st.AnalyzeTableStmt(stmt, kv, fingerId))
+			returnData = append(returnData, st.AnalyzeTableStmt())
 		default:
 			// 不允许的其他语句，有需求可以扩展
 			var data ReturnData = ReturnData{FingerId: fingerId, Query: stmt.Text(), Type: "", Level: "WARN"}
