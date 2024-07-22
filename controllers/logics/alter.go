@@ -205,7 +205,7 @@ func LogicAlterTableAddColAfter(v *traverses.TraverseAlterTableAddColAfter, r *c
 	// 检查AFTER的列是否存在
 	for _, pCol := range v.PositionCols {
 		if !utils.IsContain(v.Cols, pCol) {
-			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`AFTER的列`%s`不存在", v.Table, pCol))
+			r.Summary = append(r.Summary, fmt.Sprintf("表`%s`语句中AFTER指定的列`%s`不存在", v.Table, pCol))
 		}
 	}
 }
