@@ -1,52 +1,48 @@
-/*
-@Time    :   2022/07/06 10:12:48
-@Author  :   xff
-@Desc    :   None
-*/
-
 package kv
 
 import (
 	"sync"
 )
 
-// Cache 存储单次请求的上下文信息
-type Cache struct {
-	value interface{}
+// 泛型Cache
+type Cache[T any] struct {
+	value T
 }
 
-// KVCache 存储多个Cache实例的集合
-type KVCache struct {
-	sync.RWMutex //继承读写锁，用于并发控制
-	Id           string
-	Items        map[string]*Cache // K-V存储
+// 泛型KVCache
+type KVCache[T any] struct {
+	sync.RWMutex
+	Id    string
+	Items map[string]*Cache[T]
 }
 
 // Put 写入
-func (c *KVCache) Put(key string, value interface{}) {
+func (c *KVCache[T]) Put(key string, value T) {
 	c.Lock()
 	defer c.Unlock()
-	c.Items[key] = &Cache{value: value}
+	c.Items[key] = &Cache[T]{value: value}
 }
 
 // Get 查询
-func (c *KVCache) Get(key string) interface{} {
+func (c *KVCache[T]) Get(key string) (T, bool) {
 	c.RLock()
 	defer c.RUnlock()
-	if item, ok := c.Items[key]; ok {
-		return item.value
+	item, ok := c.Items[key]
+	if !ok {
+		var zero T
+		return zero, false
 	}
-	return nil
+	return item.value, true
 }
 
 // Delete 删除
-func (c *KVCache) Delete(key string) {
+func (c *KVCache[T]) Delete(key string) {
 	c.Lock()
 	defer c.Unlock()
 	delete(c.Items, key)
 }
 
 // NewKVCache 新建缓存
-func NewKVCache(Id string) *KVCache {
-	return &KVCache{Id: Id, Items: make(map[string]*Cache)}
+func NewKVCache[T any](Id string) *KVCache[T] {
+	return &KVCache[T]{Id: Id, Items: make(map[string]*Cache[T])}
 }

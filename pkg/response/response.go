@@ -1,13 +1,9 @@
-/*
-@Author  :   xff
-@Desc    :   response
-*/
-
 package response
 
 import (
-	"gAudit/global"
 	"net/http"
+
+	"github.com/lazzyfu/gaudit/internal/global"
 
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"

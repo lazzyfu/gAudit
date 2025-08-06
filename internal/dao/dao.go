@@ -1,0 +1,150 @@
+package dao
+
+import (
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/lazzyfu/gaudit/internal/parser"
+	"github.com/lazzyfu/gaudit/pkg/kv"
+	"github.com/lazzyfu/gaudit/pkg/utils"
+
+	mysqlapi "github.com/go-sql-driver/mysql"
+)
+
+// ShowCreateTable
+func ShowCreateTable(table string, db *DB, kv *kv.KVCache[string]) (data interface{}, err error) {
+	// 返回表结构
+	createStatement, ok := kv.Get(table)
+	if !ok {
+		query := fmt.Sprintf("show create table `%s`", table)
+		result, err := db.Query(query)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, sql := range *result {
+			// 表
+			if _, ok := sql["Create Table"]; ok {
+				createStatement = sql["Create Table"].(string)
+			}
+			// 视图
+			if _, ok := sql["Create View"]; ok {
+				createStatement = sql["Create View"].(string)
+			}
+		}
+		kv.Put(table, createStatement)
+	}
+
+	var warns []error
+	data, warns, err = parser.NewParse(createStatement, "", "")
+	if len(warns) > 0 {
+		return nil, fmt.Errorf("Parse Warning: %s", utils.ErrsJoin("; ", warns))
+	}
+	if err != nil {
+		return nil, fmt.Errorf("SQL语法解析错误：%s", err.Error())
+	}
+
+	return data, nil
+}
+
+// descTable
+func DescTable(table string, db *DB) (error, string) {
+	// 检查表是否存在，适用于确认当前实例当前库的表
+	err := db.Execute(fmt.Sprintf("desc `%s`", table))
+	if me, ok := err.(*mysqlapi.MySQLError); ok {
+		switch me.Number {
+		case 1146:
+			// 表不存在
+			return err, fmt.Sprintf("表或视图`%s`不存在", table)
+		case 1045:
+			return err, fmt.Sprintf("访问目标数据库%s:%d失败,%s", db.Host, db.Port, err.Error())
+		}
+	}
+	return nil, fmt.Sprintf("表或视图`%s`已经存在", table)
+}
+
+// 判断表行数是否大于指定的值
+func CheckTableRowCountLimit(table string, max_rows int, db *DB) error {
+	result, err := db.Query(fmt.Sprintf("SELECT 1 FROM `%s` limit %d,1", table, max_rows+1))
+	if err != nil {
+		return err
+	}
+	// 没有返回第max_rows+1行
+	if len(*result) == 0 {
+		return nil
+	}
+	// 返回了第max_rows+1行
+	return errors.New("")
+}
+
+// verifyTable
+func VerifyTable(table string, db *DB) (error, string) {
+	// 通过information_schema.tables检查表是否存在，适用于确认当前实例跨库的表
+	result, err := db.Query(fmt.Sprintf("select count(*) as count from information_schema.tables where table_name='%s'", table))
+	if err != nil {
+		return err, fmt.Sprintf("执行SQL失败,主机:%s:%d,错误:%s", db.Host, db.Port, err.Error())
+	}
+	var count int
+	for _, row := range *result {
+		count, _ = strconv.Atoi(row["count"].(string))
+		break
+	}
+	if count == 0 {
+		// 表不存在
+		return errors.New("error"), fmt.Sprintf("表或视图`%s`不存在", table)
+	}
+	// 表存在
+	return nil, fmt.Sprintf("表或视图`%s`已经存在", table)
+}
+
+// 获取DB变量
+func GetDBVars(db *DB) (map[string]string, error) {
+	result, err := db.Query(`show variables where Variable_name in ('innodb_large_prefix','version','character_set_database','innodb_default_row_format', 'innodb_adaptive_hash_index')`)
+	if err != nil {
+		return nil, err
+	}
+
+	var data map[string]string = map[string]string{
+		"dbVersion":                  "",
+		"dbCharset":                  "utf8",
+		"largePrefix":                "OFF",
+		"innodbDefaultRowFormat":     "dynamic",
+		"innodb_adaptive_hash_index": "ON",
+	}
+
+	// [map[Value:utf8 Variable_name:character_set_database] map[Value:5.7.35-log Variable_name:version]]
+	for _, row := range *result {
+		variableName, ok := row["Variable_name"].(string)
+		if !ok {
+			return nil, fmt.Errorf("unexpected type for Variable_name")
+		}
+
+		value, ok := row["Value"].(string)
+		if !ok {
+			return nil, fmt.Errorf("unexpected type for Value in row")
+		}
+
+		switch variableName {
+		case "version":
+			data["dbVersion"] = value
+		case "character_set_database":
+			data["dbCharset"] = value
+		case "innodb_large_prefix":
+			switch value {
+			case "0":
+				data["largePrefix"] = "OFF"
+			case "1":
+				data["largePrefix"] = "ON"
+			default:
+				data["largePrefix"] = strings.ToUpper(value)
+			}
+		case "innodb_default_row_format":
+			data["innodbDefaultRowFormat"] = value
+		case "innodb_adaptive_hash_index":
+			data["innodbAdaptiveHashIndex"] = value
+		}
+	}
+	return data, nil
+}
